@@ -65,7 +65,7 @@
                 <div class="bloc-tableau">
                     <div class="titre-tableau"><span>🍽️ Formule Sur Place</span><span id="sous-total-place" class="subtotal">0</span></div>
                     <table id="table-place">
-                        <thead><tr><th>Nom & Prénom</th><th>Menu</th><th>Heure</th></tr></thead>
+                        <thead><tr><th>SERVI</th><th>NOM & PRÉNOM</th><th>HEURE</th></tr></thead>
                         <tbody id="corps-place"></tbody>
                     </table>
                     <div id="vide-place" class="no-data">Aucun convive sur place.</div>
@@ -73,7 +73,7 @@
                 <div class="bloc-tableau">
                     <div class="titre-tableau"><span>🛍️ Formule À Emporter</span><span id="sous-total-emporter" class="subtotal">0</span></div>
                     <table id="table-emporter">
-                        <thead><tr><th>Nom & Prénom</th><th>Menu</th><th>Heure</th></tr></thead>
+                        <thead><tr><th>PRIS</th><th>NOM & PRÉNOM</th><th>HEURE</th></tr></thead>
                         <tbody id="corps-emporter"></tbody>
                     </table>
                     <div id="vide-emporter" class="no-data">Aucun paquet à emporter.</div>
@@ -146,16 +146,30 @@
                     const menuA = list.filter(c => c.menu === "Menu A");
                     const menuB = list.filter(c => c.menu === "Menu B");
 
-                    function ajouterLignes(items, icon) {
-                        items.forEach(cmd => {
+                    function ajouterEntete(titre, classe) {
+                        let row = document.createElement('tr');
+                        row.innerHTML = `<td colspan="3" style="background:${classe==='A'?'#fff7ed':'#f0fdf4'}; color:${classe==='A'?'#9a3412':'#166534'}; font-weight:800; font-size:12px; padding:8px 12px; border-bottom:1px solid ${classe==='A'?'#fed7aa':'#bbf7d0'};">${titre}</td>`;
+                        corps.appendChild(row);
+                    }
+
+                    if (menuA.length > 0) {
+                        ajouterEntete("🍖 SECTION MENU A (" + menuA.length + ")", "A");
+                        menuA.forEach(cmd => {
                             let h = (cmd.heure.length > 5) ? cmd.heure.substring(11, 16) : cmd.heure.replace("'", "");
                             let r = document.createElement('tr');
-                            r.innerHTML = `<td><strong>${cmd.nom}</strong></td><td>${icon} ${cmd.menu}</td><td>${h}</td>`;
+                            r.innerHTML = `<td style="width:40px;">⬜</td><td><strong>${cmd.nom}</strong></td><td>${h}</td>`;
                             corps.appendChild(r);
                         });
                     }
-                    ajouterLignes(menuA, "🍖");
-                    ajouterLignes(menuB, "🌿");
+                    if (menuB.length > 0) {
+                        ajouterEntete("🌿 SECTION MENU B (" + menuB.length + ")", "B");
+                        menuB.forEach(cmd => {
+                            let h = (cmd.heure.length > 5) ? cmd.heure.substring(11, 16) : cmd.heure.replace("'", "");
+                            let r = document.createElement('tr');
+                            r.innerHTML = `<td style="width:40px;">⬜</td><td><strong>${cmd.nom}</strong></td><td>${h}</td>`;
+                            corps.appendChild(r);
+                        });
+                    }
                 }
 
                 document.getElementById('total-a').textContent = listeCommandes.filter(c => c.menu === "Menu A").length;
