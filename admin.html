@@ -36,6 +36,13 @@
         th { background: #f8fafc; font-weight: 700; color: #475569; font-size: 12px; text-transform: uppercase; }
         .no-data { text-align: center; padding: 20px; color: #94a3b8; font-style: italic; font-size: 13px; }
         .btn-imprimer { width: 100%; background: #0284c7; color: white; border: none; font-size: 13px; font-weight: 700; text-transform: uppercase; padding: 14px; border-radius: 10px; cursor: pointer; margin-top: 10px; }
+
+        @media print {
+            body > main > h1, body > main > .subtitle, body > main > .segmented, body > main > #titre-dates, body > main > #form-admin, .btn-imprimer { display: none !important; }
+            .section-inscriptions { margin-top: 0; padding-top: 0; border-top: none; }
+            .section-inscriptions::before { content: "Registre des inscriptions du : " attr(data-date-print); display: block; font-size: 18px; font-weight: 800; margin-bottom: 20px; text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; }
+            main { box-shadow: none; border-radius: 0; width: 100%; max-width: none; padding: 0; }
+        }
     </style>
 </head>
 <body>
@@ -54,7 +61,7 @@
             <button type="submit" class="btn-sauvegarder">🚀 Publier les menus</button>
         </form>
 
-        <div class="section-inscriptions">
+        <div class="section-inscriptions" id="zone-registre" data-date-print="">
             <h1>📊 Liste Générée Cuisine</h1>
             <select id="select-jour" class="select-jour-registre" onchange="chargerInscriptionsDuJour()"></select>
             <div class="stats-grid">
@@ -121,7 +128,11 @@
         }
 
         function chargerInscriptionsDuJour() {
-            const jourSelectionne = document.getElementById('select-jour').value;
+            const select = document.getElementById('select-jour');
+            const jourSelectionne = select.value;
+            const texteJour = select.options[select.selectedIndex].text;
+            document.getElementById('zone-registre').setAttribute('data-date-print', texteJour);
+            
             fetch(`${URL_SCRIPT_GOOGLE}?action=obtenirInscriptions`)
             .then(res => res.json())
             .then(toutesLesInscriptions => {
@@ -196,15 +207,12 @@
                 joursAjoutes++;
             }
             select.selectedIndex = 0;
-            
-            // Ajout de l'écouteur pour basculer entre semaine actuelle/suivante
             document.querySelectorAll('input[name="choix_semaine"]').forEach(radio => {
                 radio.addEventListener('change', (e) => {
                     semaineSelectionnee = e.target.value;
                     genererInterfaceAdmin();
                 });
             });
-
             récupererMenusDistants(); 
             chargerInscriptionsDuJour();
         };
