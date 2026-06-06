@@ -2,13 +2,32 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Self CHIMR • Inscriptions</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        #form-commande { border: 1px solid #ccc; padding: 20px; border-radius: 8px; max-width: 400px; }
+        input, button { display: block; width: 100%; margin-bottom: 10px; padding: 10px; }
+    </style>
 </head>
 <body>
 
+    <h1>Inscription Self CHIMR</h1>
+
     <form id="form-commande">
-        <input type="text" id="nom_client" placeholder="Votre nom" required>
+        <label>Nom :</label>
+        <input type="text" id="nom_client" required>
+        
+        <label>Menu :</label>
+        <input type="radio" name="choix_menu" value="Menu A" checked> Menu A
+        <input type="radio" name="choix_menu" value="Menu B"> Menu B
+        
+        <label>Mode :</label>
+        <input type="radio" name="mode_retrait" value="Sur place" checked> Sur place
+        <input type="radio" name="mode_retrait" value="À emporter"> À emporter
+        
+        <label>Heure :</label>
+        <input type="time" id="heure_retrait" value="12:00">
+        
         <button type="submit" id="btn-submit">Confirmer la commande</button>
     </form>
 
@@ -17,44 +36,36 @@
             const URL_SCRIPT_GOOGLE = "https://script.google.com/macros/s/AKfycbzcCFLxV_IxqN6zToLlGcCysRZKlbZWFYv2vla3vx8nSV2-BTzdubh9GLmIJ9XMVhjD/exec";
             const form = document.getElementById('form-commande');
 
-            if (form) {
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    const btn = document.getElementById('btn-submit');
-                    btn.disabled = true; 
-                    btn.textContent = "Enregistrement en cours...";
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const btn = document.getElementById('btn-submit');
+                btn.disabled = true; 
+                btn.textContent = "Enregistrement en cours...";
 
-                    // Assurez-vous que la variable dateSelectionneeISO est bien définie ailleurs dans votre code
-                    const donnees = {
-                        action: "enregistrerCommande",
-                        date: typeof dateSelectionneeISO !== 'undefined' ? dateSelectionneeISO : new Date().toISOString().split('T')[0],
-                        nom: document.getElementById('nom_client').value.trim(),
-                        menu: document.querySelector('input[name="choix_menu"]:checked') ? document.querySelector('input[name="choix_menu"]:checked').value : "Non spécifié",
-                        mode: document.querySelector('input[name="mode_retrait"]:checked') ? document.querySelector('input[name="mode_retrait"]:checked').value : "Non spécifié",
-                        heure: document.getElementById('heure_retrait') ? document.getElementById('heure_retrait').value : "00:00"
-                    };
+                const donnees = {
+                    action: "enregistrerCommande",
+                    date: new Date().toISOString().split('T')[0], // Date du jour
+                    nom: document.getElementById('nom_client').value,
+                    menu: document.querySelector('input[name="choix_menu"]:checked').value,
+                    mode: document.querySelector('input[name="mode_retrait"]:checked').value,
+                    heure: document.getElementById('heure_retrait').value
+                };
 
-                    fetch(URL_SCRIPT_GOOGLE, {
-                        method: "POST",
-                        mode: "no-cors",
-                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                        body: new URLSearchParams(donnees)
-                    })
-                    .then(() => {
-                        alert("🎉 Réservation bien enregistrée !");
-                        location.reload();
-                    })
-                    .catch(err => {
-                        console.error("Erreur d'envoi:", err);
-                        alert("Erreur lors de l'envoi. Veuillez réessayer.");
-                        btn.disabled = false;
-                        btn.textContent = "Confirmer la commande";
-                    });
+                fetch(URL_SCRIPT_GOOGLE, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: new URLSearchParams(donnees)
+                })
+                .then(() => {
+                    alert("🎉 Réservation enregistrée !");
+                    location.reload();
+                })
+                .catch(err => {
+                    alert("Erreur d'envoi.");
+                    btn.disabled = false;
                 });
-            } else {
-                console.error("L'élément form-commande n'a pas été trouvé.");
-            }
+            });
         });
     </script>
 </body>
