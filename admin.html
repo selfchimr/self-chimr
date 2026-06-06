@@ -130,9 +130,9 @@
                 commandesDuJour.forEach(c => mapUniq.set(c.nom, c));
                 let listeCommandes = Array.from(mapUniq.values());
 
-                let globalA = 0, globalB = 0;
                 function construireTableau(list, idCorps, idTable, idVide, idSousTotal) {
-                    const corps = document.getElementById(idCorps); corps.innerHTML = "";
+                    const corps = document.getElementById(idCorps); 
+                    corps.innerHTML = "";
                     if (list.length === 0) {
                         document.getElementById(idVide).style.display = "block";
                         document.getElementById(idTable).style.display = "none";
@@ -142,19 +142,26 @@
                     document.getElementById(idVide).style.display = "none";
                     document.getElementById(idTable).style.display = "table";
                     document.getElementById(idSousTotal).textContent = `${list.length} repas`;
-                    list.forEach(cmd => {
-                        if(cmd.menu === "Menu A") globalA++; else globalB++;
-                        let iconeMenu = (cmd.menu === "Menu A") ? "🍖" : "🌿";
-                        let h = (cmd.heure.length > 5) ? cmd.heure.substring(11, 16) : cmd.heure.replace("'", "");
-                        let r = document.createElement('tr');
-                        r.innerHTML = `<td><strong>${cmd.nom}</strong></td><td>${iconeMenu} ${cmd.menu}</td><td>${h}</td>`;
-                        corps.appendChild(r);
-                    });
+
+                    const menuA = list.filter(c => c.menu === "Menu A");
+                    const menuB = list.filter(c => c.menu === "Menu B");
+
+                    function ajouterLignes(items, icon) {
+                        items.forEach(cmd => {
+                            let h = (cmd.heure.length > 5) ? cmd.heure.substring(11, 16) : cmd.heure.replace("'", "");
+                            let r = document.createElement('tr');
+                            r.innerHTML = `<td><strong>${cmd.nom}</strong></td><td>${icon} ${cmd.menu}</td><td>${h}</td>`;
+                            corps.appendChild(r);
+                        });
+                    }
+                    ajouterLignes(menuA, "🍖");
+                    ajouterLignes(menuB, "🌿");
                 }
+
+                document.getElementById('total-a').textContent = listeCommandes.filter(c => c.menu === "Menu A").length;
+                document.getElementById('total-b').textContent = listeCommandes.filter(c => c.menu === "Menu B").length;
                 construireTableau(listeCommandes.filter(c => c.mode === "Sur place"), 'corps-place', 'table-place', 'vide-place', 'sous-total-place');
                 construireTableau(listeCommandes.filter(c => c.mode === "À emporter"), 'corps-emporter', 'table-emporter', 'vide-emporter', 'sous-total-emporter');
-                document.getElementById('total-a').textContent = globalA;
-                document.getElementById('total-b').textContent = globalB;
             });
         }
 
