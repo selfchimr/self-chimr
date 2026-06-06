@@ -12,9 +12,6 @@
         main { max-width: 450px; margin: 0 auto; padding: 16px; }
         h2 { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 12px; padding-left: 4px; }
         
-        /* Styles recherche */
-        .bloc-recherche { margin-bottom: 25px; padding: 15px; background: #f1f5f9; border-radius: 12px; border: 1px solid #e2e8f0; }
-        
         .grid-jours { display: flex; justify-content: space-between; gap: 6px; width: 100%; }
         .btn-jour { flex: 1; height: 85px; background: white; border: 1px solid #e2e8f0; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; min-width: 0; }
         .btn-jour .j-nom { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #94a3b8; }
@@ -68,9 +65,11 @@
         <div id="zone-chargement" class="chargement">🔄 Récupération des menus en cours...</div>
         
         <div id="app-contenu" class="hidden">
-            <div class="bloc-recherche">
-                <label style="font-size:11px; font-weight:800; color:#94a3b8; text-transform:uppercase;">Vérifier mon inscription</label>
-                <input type="text" id="recherche-nom" placeholder="Entrez votre nom..." style="width:100%; padding:10px; margin-top:5px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px;">
+            <button id="btn-toggle-recherche" style="margin-bottom: 20px; width:100%; padding:12px; background:#e2e8f0; border:none; border-radius:12px; font-weight:700; color:#475569; cursor:pointer;">
+                🔍 Suis-je inscrit ?
+            </button>
+            <div id="bloc-recherche" class="hidden" style="margin-bottom:25px; padding:15px; background:#f1f5f9; border-radius:12px; border:1px solid #e2e8f0;">
+                <input type="text" id="recherche-nom" placeholder="Entrez votre nom..." style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px;">
                 <div id="resultat-recherche" style="margin-top:10px; font-size:14px; font-weight:600;"></div>
             </div>
 
@@ -141,7 +140,13 @@
         let dateSelectionneeISO = "";
         let menusDuServeur = {};
 
-        // --- FONCTIONS RECHERCHE & ANNULATION ---
+        // --- GESTION RECHERCHE & ANNULATION ---
+        document.getElementById('btn-toggle-recherche').addEventListener('click', function() {
+            const bloc = document.getElementById('bloc-recherche');
+            bloc.classList.toggle('hidden');
+            this.textContent = bloc.classList.contains('hidden') ? "🔍 Suis-je inscrit ?" : "Fermer la recherche";
+        });
+
         document.getElementById('recherche-nom').addEventListener('input', function(e) {
             const nomSaisi = e.target.value.toLowerCase().trim();
             const zoneResultat = document.getElementById('resultat-recherche');
