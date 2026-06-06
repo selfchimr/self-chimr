@@ -158,4 +158,72 @@
             for (let i = 0; i < 15; i++) {
                 if (affiches >= 5) break;
                 let d = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate() + i);
-                let jourSemaine = d
+                let jourSemaine = d.getDay();
+                
+                if (jourSemaine === 0 || jourSemaine === 6) continue;
+                if (i === 0 && heureActuelle >= 11) continue;
+
+                let cle = d.toISOString().split('T')[0];
+                let menus = menusDuServeur[cle] || { A: "", B: "" };
+                let ouvert = (menus.A && menus.A.trim() !== "") || (menus.B && menus.B.trim() !== "");
+                
+                const btn = document.createElement('div');
+                if (!ouvert) {
+                    btn.className = 'btn-jour bloque';
+                    btn.innerHTML = '<span class="j-nom">' + JOURS_NOM[jourSemaine] + '</span><span class="j-num">' + d.getDate() + '</span><span class="j-mois">🔒 FERMÉ</span>';
+                } else {
+                    btn.className = 'btn-jour';
+                    btn.innerHTML = '<span class="j-nom">' + JOURS_NOM[jourSemaine] + '</span><span class="j-num">' + d.getDate() + '</span><span class="j-mois">' + MOIS_FR[d.getMonth()] + '</span>';
+                    btn.addEventListener('click', function() {
+                        document.querySelectorAll('.btn-jour').forEach(b => b.classList.remove('actif'));
+                        btn.classList.add('actif');
+                        dateSelectionneeISO = cle;
+                        document.getElementById('label-menu-a').textContent = menus.A || "Non renseigné";
+                        document.getElementById('label-menu-b').textContent = menus.B || "Non renseigné";
+                        document.getElementById('form-commande').classList.remove('hidden');
+                    });
+                }
+                conteneur.appendChild(btn);
+                affiches++;
+            }
+        }
+
+        document.getElementById('form-commande').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // SAUVEGARDE DU NOM DANS LE NAVIGATEUR
+            const nomSaisi = document.getElementById('nom_client').value.trim();
+            localStorage.setItem('nomUserSelf', nomSaisi);
+
+            const btn = document.getElementById('btn-submit');
+            btn.disabled = true; btn.textContent = "Transmission...";
+
+            fetch(URL_SCRIPT_GOOGLE, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({
+                    action: "enregistrerCommande",
+                    date: dateSelectionneeISO,
+                    nom: nomSaisi,
+                    menu: document.querySelector('input[name="choix_menu"]:checked').value,
+                    mode: document.querySelector('input[name="mode_retrait"]:checked').value,
+                    heure: document.getElementById('heure_retrait').value
+                })
+            }).then(() => {
+                alert("🎉 Réservation enregistrée !");
+                location.reload();
+            });
+        });
+
+        // CHARGEMENT DU NOM AU LANCEMENT
+        window.addEventListener('DOMContentLoaded', function() {
+            chargerMenus();
+            const nomSauvegarde = localStorage.getItem('nomUserSelf');
+            if (nomSauvegarde) {
+                document.getElementById('nom_client').value = nomSauvegarde;
+            }
+        });
+    </script>
+</body>
+</html>
