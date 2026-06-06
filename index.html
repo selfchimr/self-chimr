@@ -12,14 +12,15 @@
         main { max-width: 450px; margin: 0 auto; padding: 16px; }
         h2 { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 12px; padding-left: 4px; }
         
+        /* Styles recherche */
+        .bloc-recherche { margin-bottom: 25px; padding: 15px; background: #f1f5f9; border-radius: 12px; border: 1px solid #e2e8f0; }
+        
         .grid-jours { display: flex; justify-content: space-between; gap: 6px; width: 100%; }
         .btn-jour { flex: 1; height: 85px; background: white; border: 1px solid #e2e8f0; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; min-width: 0; }
         .btn-jour .j-nom { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #94a3b8; }
         .btn-jour .j-num { font-size: 20px; font-weight: 800; color: #0f172a; margin-top: 2px; }
         .btn-jour .j-mois { font-size: 9px; font-weight: 600; color: #94a3b8; margin-top: 1px; }
         .btn-jour.bloque { background: #f1f5f9; border-color: #e2e8f0; opacity: 0.6; cursor: not-allowed; }
-        .btn-jour.bloque .j-num { color: #94a3b8; }
-        .btn-jour.bloque .j-mois { font-size: 8px; color: #ef4444; font-weight: 700; margin-top: 2px; text-transform: uppercase; }
         .btn-jour.actif { background: #0f172a; border-color: #0f172a; }
         .btn-jour.actif .j-nom { color: #cbd5e1; }
         .btn-jour.actif .j-num { color: white; }
@@ -67,6 +68,12 @@
         <div id="zone-chargement" class="chargement">🔄 Récupération des menus en cours...</div>
         
         <div id="app-contenu" class="hidden">
+            <div class="bloc-recherche">
+                <label style="font-size:11px; font-weight:800; color:#94a3b8; text-transform:uppercase;">Vérifier mon inscription</label>
+                <input type="text" id="recherche-nom" placeholder="Entrez votre nom..." style="width:100%; padding:10px; margin-top:5px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px;">
+                <div id="resultat-recherche" style="margin-top:10px; font-size:14px; font-weight:600;"></div>
+            </div>
+
             <div style="margin-bottom: 20px;">
                 <h2>📅 Prochains jours disponibles</h2>
                 <div id="liste-jours" class="grid-jours"></div>
@@ -134,6 +141,39 @@
         let dateSelectionneeISO = "";
         let menusDuServeur = {};
 
+        // --- FONCTIONS RECHERCHE & ANNULATION ---
+        document.getElementById('recherche-nom').addEventListener('input', function(e) {
+            const nomSaisi = e.target.value.toLowerCase().trim();
+            const zoneResultat = document.getElementById('resultat-recherche');
+            if (nomSaisi.length < 3) { zoneResultat.innerHTML = ""; return; }
+            fetch(`${URL_SCRIPT_GOOGLE}?action=obtenirInscriptions`)
+            .then(res => res.json())
+            .then(data => {
+                const inscription = data.find(c => c.nom.toLowerCase() === nomSaisi);
+                if (inscription) {
+                    const maintenant = new Date();
+                    const limite = new Date(); limite.setHours(11, 0, 0, 0);
+                    const dateInscription = new Date(inscription.date);
+                    const aujourdhui = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate());
+                    const estModifiable = (dateInscription.getTime() === aujourdhui.getTime() && maintenant < limite) || (dateInscription > aujourdhui);
+                    let html = `✅ Inscrit au ${inscription.menu} (${inscription.date}).`;
+                    if (estModifiable) {
+                        html += `<br><span style="cursor:pointer; color:#ef4444; display:inline-block; margin-top:8px;" onclick="annulerInscription('${inscription.nom}', '${inscription.date}')" title="Annuler">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        </span>`;
+                    }
+                    zoneResultat.innerHTML = html;
+                } else { zoneResultat.innerHTML = "❌ Aucune inscription trouvée."; }
+            });
+        });
+
+        function annulerInscription(nom, date) {
+            if (!confirm(`Confirmez-vous l'annulation pour ${nom} le ${date} ?`)) return;
+            fetch(URL_SCRIPT_GOOGLE, { method: "POST", mode: "no-cors", body: new URLSearchParams({ action: "annulerInscription", nom: nom, date: date }) })
+            .then(() => { alert("Annulation effectuée."); location.reload(); });
+        }
+
+        // --- FONCTIONS EXISTANTES ---
         function chargerMenus() {
             fetch(URL_SCRIPT_GOOGLE + "?action=obtenirMenus")
             .then(res => res.json())
@@ -142,9 +182,6 @@
                 document.getElementById('zone-chargement').classList.add('hidden');
                 document.getElementById('app-contenu').classList.remove('hidden');
                 genererCalendrier();
-            })
-            .catch(err => {
-                document.getElementById('zone-chargement').innerHTML = "❌ Erreur de catalogue.";
             });
         }
 
@@ -154,26 +191,18 @@
             const maintenant = new Date();
             const heureActuelle = maintenant.getHours();
             let affiches = 0;
-
             for (let i = 0; i < 15; i++) {
                 if (affiches >= 5) break;
                 let d = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate() + i);
-                let jourSemaine = d.getDay();
-                
-                if (jourSemaine === 0 || jourSemaine === 6) continue;
+                if (d.getDay() === 0 || d.getDay() === 6) continue;
                 if (i === 0 && heureActuelle >= 11) continue;
-
                 let cle = d.toISOString().split('T')[0];
                 let menus = menusDuServeur[cle] || { A: "", B: "" };
                 let ouvert = (menus.A && menus.A.trim() !== "") || (menus.B && menus.B.trim() !== "");
-                
                 const btn = document.createElement('div');
-                if (!ouvert) {
-                    btn.className = 'btn-jour bloque';
-                    btn.innerHTML = '<span class="j-nom">' + JOURS_NOM[jourSemaine] + '</span><span class="j-num">' + d.getDate() + '</span><span class="j-mois">🔒 FERMÉ</span>';
-                } else {
-                    btn.className = 'btn-jour';
-                    btn.innerHTML = '<span class="j-nom">' + JOURS_NOM[jourSemaine] + '</span><span class="j-num">' + d.getDate() + '</span><span class="j-mois">' + MOIS_FR[d.getMonth()] + '</span>';
+                btn.className = ouvert ? 'btn-jour' : 'btn-jour bloque';
+                btn.innerHTML = `<span class="j-nom">${JOURS_NOM[d.getDay()]}</span><span class="j-num">${d.getDate()}</span><span class="j-mois">${ouvert ? MOIS_FR[d.getMonth()] : '🔒 FERMÉ'}</span>`;
+                if(ouvert) {
                     btn.addEventListener('click', function() {
                         document.querySelectorAll('.btn-jour').forEach(b => b.classList.remove('actif'));
                         btn.classList.add('actif');
@@ -190,39 +219,18 @@
 
         document.getElementById('form-commande').addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            // SAUVEGARDE DU NOM DANS LE NAVIGATEUR
-            const nomSaisi = document.getElementById('nom_client').value.trim();
-            localStorage.setItem('nomUserSelf', nomSaisi);
-
+            localStorage.setItem('nomUserSelf', document.getElementById('nom_client').value.trim());
             const btn = document.getElementById('btn-submit');
             btn.disabled = true; btn.textContent = "Transmission...";
-
             fetch(URL_SCRIPT_GOOGLE, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: new URLSearchParams({
-                    action: "enregistrerCommande",
-                    date: dateSelectionneeISO,
-                    nom: nomSaisi,
-                    menu: document.querySelector('input[name="choix_menu"]:checked').value,
-                    mode: document.querySelector('input[name="mode_retrait"]:checked').value,
-                    heure: document.getElementById('heure_retrait').value
-                })
-            }).then(() => {
-                alert("🎉 Réservation enregistrée !");
-                location.reload();
-            });
+                method: "POST", mode: "no-cors",
+                body: new URLSearchParams({ action: "enregistrerCommande", date: dateSelectionneeISO, nom: document.getElementById('nom_client').value.trim(), menu: document.querySelector('input[name="choix_menu"]:checked').value, mode: document.querySelector('input[name="mode_retrait"]:checked').value, heure: document.getElementById('heure_retrait').value })
+            }).then(() => { alert("🎉 Réservation enregistrée !"); location.reload(); });
         });
 
-        // CHARGEMENT DU NOM AU LANCEMENT
-        window.addEventListener('DOMContentLoaded', function() {
+        window.addEventListener('DOMContentLoaded', () => {
             chargerMenus();
-            const nomSauvegarde = localStorage.getItem('nomUserSelf');
-            if (nomSauvegarde) {
-                document.getElementById('nom_client').value = nomSauvegarde;
-            }
+            if (localStorage.getItem('nomUserSelf')) document.getElementById('nom_client').value = localStorage.getItem('nomUserSelf');
         });
     </script>
 </body>
