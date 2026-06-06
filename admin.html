@@ -196,6 +196,15 @@
                 joursAjoutes++;
             }
             select.selectedIndex = 0;
+            
+            // Ajout de l'écouteur pour basculer entre semaine actuelle/suivante
+            document.querySelectorAll('input[name="choix_semaine"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    semaineSelectionnee = e.target.value;
+                    genererInterfaceAdmin();
+                });
+            });
+
             récupererMenusDistants(); 
             chargerInscriptionsDuJour();
         };
