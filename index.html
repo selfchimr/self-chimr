@@ -2,34 +2,58 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Self CHIMR • Inscriptions</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; }
-        #form-commande { border: 1px solid #ccc; padding: 20px; border-radius: 8px; max-width: 400px; }
-        input, button { display: block; width: 100%; margin-bottom: 10px; padding: 10px; }
+        /* Votre design d'origine */
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; color: #333; }
+        h1 { color: #2c3e50; }
+        #form-commande { border: 1px solid #ddd; padding: 20px; border-radius: 10px; max-width: 500px; margin: auto; background: #f9f9f9; }
+        .group { margin-bottom: 20px; }
+        label { font-weight: bold; display: block; margin-bottom: 5px; }
+        input[type="text"], select { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        button { width: 100%; padding: 15px; background: #27ae60; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
+        button:disabled { background: #95a5a6; }
     </style>
 </head>
 <body>
 
-    <h1>Inscription Self CHIMR</h1>
+    <div id="form-container">
+        <h1>Self CHIMR</h1>
+        <p>🔄 Récupération des menus en cours...</p>
 
-    <form id="form-commande">
-        <label>Nom :</label>
-        <input type="text" id="nom_client" required>
-        
-        <label>Menu :</label>
-        <input type="radio" name="choix_menu" value="Menu A" checked> Menu A
-        <input type="radio" name="choix_menu" value="Menu B"> Menu B
-        
-        <label>Mode :</label>
-        <input type="radio" name="mode_retrait" value="Sur place" checked> Sur place
-        <input type="radio" name="mode_retrait" value="À emporter"> À emporter
-        
-        <label>Heure :</label>
-        <input type="time" id="heure_retrait" value="12:00">
-        
-        <button type="submit" id="btn-submit">Confirmer la commande</button>
-    </form>
+        <form id="form-commande">
+            <div class="group">
+                <h2>1. Sélectionnez votre assiette</h2>
+                <input type="radio" name="choix_menu" value="Menu A" id="menuA" checked> <label style="display:inline" for="menuA">🍖 Menu A</label><br>
+                <input type="radio" name="choix_menu" value="Menu B" id="menuB"> <label style="display:inline" for="menuB">🌿 Menu B</label>
+            </div>
+
+            <div class="group">
+                <h2>2. Où mangez-vous ?</h2>
+                <input type="radio" name="mode_retrait" value="Sur place" id="surPlace" checked> <label style="display:inline" for="surPlace">🍽️ Sur place</label><br>
+                <input type="radio" name="mode_retrait" value="À emporter" id="aEmporter"> <label style="display:inline" for="aEmporter">🛍️ À emporter</label>
+            </div>
+
+            <div class="group">
+                <h2>3. Finaliser la réservation</h2>
+                <label>Nom & Prénom</label>
+                <input type="text" id="nom_client" required>
+                
+                <label>Heure du retrait</label>
+                <select id="heure_retrait">
+                    <option value="12:00">12:00</option>
+                    <option value="12:15">12:15</option>
+                    <option value="12:30">12:30</option>
+                    <option value="12:45">12:45</option>
+                    <option value="13:00">13:00</option>
+                    <option value="13:15">13:15</option>
+                </select>
+            </div>
+
+            <button type="submit" id="btn-submit">Confirmer la commande</button>
+        </form>
+    </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -44,7 +68,7 @@
 
                 const donnees = {
                     action: "enregistrerCommande",
-                    date: new Date().toISOString().split('T')[0], // Date du jour
+                    date: new Date().toISOString().split('T')[0],
                     nom: document.getElementById('nom_client').value,
                     menu: document.querySelector('input[name="choix_menu"]:checked').value,
                     mode: document.querySelector('input[name="mode_retrait"]:checked').value,
@@ -62,8 +86,10 @@
                     location.reload();
                 })
                 .catch(err => {
+                    console.error(err);
                     alert("Erreur d'envoi.");
                     btn.disabled = false;
+                    btn.textContent = "Confirmer la commande";
                 });
             });
         });
