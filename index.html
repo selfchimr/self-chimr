@@ -157,13 +157,20 @@
 
             for (let i = 0; i < 15; i++) {
                 if (affiches >= 5) break;
-                let d = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate() + i);
+                
+                // CORRECTION : Forçage à 12:00:00 pour éviter le basculement de date UTC
+                let d = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate() + i, 12, 0, 0);
                 let jourSemaine = d.getDay();
                 
                 if (jourSemaine === 0 || jourSemaine === 6) continue;
                 if (i === 0 && heureActuelle >= 11) continue;
 
-                let cle = d.toISOString().split('T')[0];
+                // Construction manuelle de la clé (Format YYYY-MM-DD fixe)
+                let annee = d.getFullYear();
+                let mois = (d.getMonth() + 1).toString().padStart(2, '0');
+                let jour = d.getDate().toString().padStart(2, '0');
+                let cle = `${annee}-${mois}-${jour}`;
+
                 let menus = menusDuServeur[cle] || { A: "", B: "" };
                 let ouvert = (menus.A && menus.A.trim() !== "") || (menus.B && menus.B.trim() !== "");
                 
@@ -190,8 +197,6 @@
 
         document.getElementById('form-commande').addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            // SAUVEGARDE DU NOM DANS LE NAVIGATEUR
             const nomSaisi = document.getElementById('nom_client').value.trim();
             localStorage.setItem('nomUserSelf', nomSaisi);
 
@@ -216,7 +221,6 @@
             });
         });
 
-        // CHARGEMENT DU NOM AU LANCEMENT
         window.addEventListener('DOMContentLoaded', function() {
             chargerMenus();
             const nomSauvegarde = localStorage.getItem('nomUserSelf');

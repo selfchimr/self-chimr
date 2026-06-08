@@ -115,10 +115,14 @@
             document.getElementById('titre-dates').textContent = `Semaine du Lundi ${baseLundi.getDate()}/${baseLundi.getMonth() + 1}/${baseLundi.getFullYear()}`;
             const conteneur = document.getElementById('conteneur-jours');
             if(!conteneur) return; conteneur.innerHTML = "";
+            
             for (let i = 0; i < 5; i++) {
-                let dateJour = new Date(baseLundi.getTime() + (i * 24 * 60 * 60 * 1000));
+                // CORRECTION : On force l'heure à midi (12:00:00) pour éviter le décalage UTC
+                let dateJour = new Date(baseLundi.getFullYear(), baseLundi.getMonth(), baseLundi.getDate() + i, 12, 0, 0);
+                
                 let isoClé = dateJour.toISOString().split('T')[0];
                 let menuJour = menusServeurComplets[isoClé] || { A: "", B: "" };
+                
                 const bloc = document.createElement('div');
                 bloc.className = 'jour-bloc';
                 bloc.innerHTML = `<div class="jour-header"><div class="jour-titre" data-date="${isoClé}">📅 ${dateJour.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</div></div>
@@ -209,10 +213,7 @@
             }
             select.selectedIndex = 0;
             document.querySelectorAll('input[name="choix_semaine"]').forEach(radio => {
-                radio.addEventListener('change', (e) => {
-                    semaineSelectionnee = e.target.value;
-                    genererInterfaceAdmin();
-                });
+                radio.addEventListener('change', (e) => { semaineSelectionnee = e.target.value; genererInterfaceAdmin(); });
             });
             récupererMenusDistants(); 
             chargerInscriptionsDuJour();
