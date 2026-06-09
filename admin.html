@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -22,7 +23,8 @@
         .input-group input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
         .btn-sauvegarder { width: 100%; background: #0f172a; color: white; border: none; font-size: 14px; font-weight: 700; text-transform: uppercase; padding: 16px; border-radius: 12px; cursor: pointer; margin-top: 10px; }
         .date-semaine-titre { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 15px; text-align: center; background: #e0f2fe; padding: 8px; border-radius: 8px; }
-        .section-inscriptions { margin-top: 40px; padding-top: 30px; border-top: 3px double #e2e8f0; }
+        
+        /* Styles Registre */
         .select-jour-registre { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; font-weight: 600; margin-bottom: 15px; background: #f8fafc; color: #0f172a; }
         .stats-grid { display: flex; gap: 10px; margin-bottom: 25px; }
         .stat-card { flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 10px; text-align: center; }
@@ -37,33 +39,76 @@
         .no-data { text-align: center; padding: 20px; color: #94a3b8; font-style: italic; font-size: 13px; }
         .btn-imprimer { width: 100%; background: #0284c7; color: white; border: none; font-size: 13px; font-weight: 700; text-transform: uppercase; padding: 14px; border-radius: 10px; cursor: pointer; margin-top: 10px; }
 
+        /* --- OPTIMISATION SPÉCIFIQUE IMPRESSION --- */
         @media print {
-            body > main > h1, body > main > .subtitle, body > main > .segmented, body > main > #titre-dates, body > main > #form-admin, .btn-imprimer,
-            .section-inscriptions h1, .select-jour-registre { display: none !important; }
-            .section-inscriptions { margin-top: 0; padding-top: 0; border-top: none; }
-            .section-inscriptions::before { content: "Registre des inscriptions du : " attr(data-date-print); display: block; font-size: 18px; font-weight: 800; margin-bottom: 20px; text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; }
-            main { box-shadow: none; border-radius: 0; width: 100%; max-width: none; padding: 0; }
+            /* Masquer tout ce qui est inutile à l'impression */
+            body > main > h1, 
+            body > main > .subtitle, 
+            body > main > .segmented, 
+            #section-menus, 
+            .btn-imprimer, 
+            .select-jour-registre,
+            .stats-grid { 
+                display: none !important; 
+            }
+
+            /* Ajuster la largeur principale */
+            main { 
+                box-shadow: none; 
+                width: 100%; 
+                max-width: none; 
+                padding: 0; 
+            }
+
+            /* Mettre le titre personnalisé pour l'impression */
+            #section-registre::before { 
+                content: "LISTE DES INSCRITS : " attr(data-date-print); 
+                display: block; 
+                font-size: 16px; 
+                font-weight: 800; 
+                margin-bottom: 10px; 
+                border-bottom: 2px solid #000; 
+            }
+
+            /* Compacter les tableaux */
+            .bloc-tableau { margin-bottom: 5px; }
+            .titre-tableau { font-size: 11px; margin-bottom: 2px; }
+            
+            table { font-size: 10px !important; }
+            th, td { padding: 2px 4px !important; }
+            
+            /* Forcer l'affichage côte à côte */
+            #zone-tableaux { 
+                display: grid; 
+                grid-template-columns: 1fr 1fr; 
+                gap: 10px; 
+            }
         }
     </style>
 </head>
 <body>
     <main>
         <h1>🍳 Configuration & Suivi • Réseau Central</h1>
-        <p class="subtitle">Remplissez les menus pour les lier en direct avec les terminaux agents.</p>
+        <p class="subtitle">Gérez vos menus et consultez les inscriptions.</p>
+        
         <div class="segmented">
-            <input type="radio" id="semaine-en-cours" name="choix_semaine" value="actuelle" class="hidden" checked>
-            <label for="semaine-en-cours">📅 Semaine en cours</label>
-            <input type="radio" id="semaine-suivante" name="choix_semaine" value="suivante" class="hidden">
-            <label for="semaine-suivante">⏩ Semaine suivante</label>
+            <input type="radio" id="tab-registre" name="onglet-admin" value="registre" class="hidden" checked onchange="basculerOnglet('registre')">
+            <label for="tab-registre">📊 Liste cuisine</label>
+            <input type="radio" id="tab-actuelle" name="onglet-admin" value="actuelle" class="hidden" onchange="basculerOnglet('actuelle')">
+            <label for="tab-actuelle">📅 Semaine en cours</label>
+            <input type="radio" id="tab-suivante" name="onglet-admin" value="suivante" class="hidden" onchange="basculerOnglet('suivante')">
+            <label for="tab-suivante">⏩ Semaine suivante</label>
         </div>
-        <div id="titre-dates" class="date-semaine-titre">Chargement...</div>
-        <form id="form-admin">
-            <div id="conteneur-jours"></div>
-            <button type="submit" class="btn-sauvegarder">🚀 Publier les menus</button>
-        </form>
 
-        <div class="section-inscriptions" id="zone-registre" data-date-print="">
-            <h1>📊 Liste Générée Cuisine</h1>
+        <div id="section-menus" class="hidden">
+            <div id="titre-dates" class="date-semaine-titre">Chargement...</div>
+            <form id="form-admin">
+                <div id="conteneur-jours"></div>
+                <button type="submit" class="btn-sauvegarder">🚀 Publier les menus</button>
+            </form>
+        </div>
+
+        <div id="section-registre">
             <select id="select-jour" class="select-jour-registre" onchange="chargerInscriptionsDuJour()"></select>
             <div class="stats-grid">
                 <div class="stat-card"><div id="total-a" class="val">0</div><div class="lbl">🍖 TOTAL MENU A</div></div>
@@ -72,18 +117,12 @@
             <div id="zone-tableaux">
                 <div class="bloc-tableau">
                     <div class="titre-tableau"><span>🍽️ Formule Sur Place</span><span id="sous-total-place" class="subtotal">0</span></div>
-                    <table id="table-place">
-                        <thead><tr><th>SERVI</th><th>NOM & PRÉNOM</th><th>HEURE</th></tr></thead>
-                        <tbody id="corps-place"></tbody>
-                    </table>
+                    <table id="table-place"><tbody id="corps-place"></tbody></table>
                     <div id="vide-place" class="no-data">Aucun convive sur place.</div>
                 </div>
                 <div class="bloc-tableau">
                     <div class="titre-tableau"><span>🛍️ Formule À Emporter</span><span id="sous-total-emporter" class="subtotal">0</span></div>
-                    <table id="table-emporter">
-                        <thead><tr><th>PRIS</th><th>NOM & PRÉNOM</th><th>HEURE</th></tr></thead>
-                        <tbody id="corps-emporter"></tbody>
-                    </table>
+                    <table id="table-emporter"><tbody id="corps-emporter"></tbody></table>
                     <div id="vide-emporter" class="no-data">Aucun paquet à emporter.</div>
                 </div>
             </div>
@@ -95,6 +134,17 @@
         let semaineSelectionnee = "actuelle";
         let menusServeurComplets = {};
 
+        function basculerOnglet(onglet) {
+            document.getElementById('section-menus').classList.toggle('hidden', onglet === 'registre');
+            document.getElementById('section-registre').classList.toggle('hidden', onglet !== 'registre');
+            if (onglet === 'registre') {
+                chargerInscriptionsDuJour();
+            } else {
+                semaineSelectionnee = onglet;
+                genererInterfaceAdmin();
+            }
+        }
+
         function chargerBaseLundi(choix) {
             const maintenant = new Date();
             let jourSemaine = maintenant.getDay();
@@ -104,23 +154,15 @@
             return baseLundi;
         }
 
-        function récupererMenusDistants() {
-            fetch(`${URL_SCRIPT_GOOGLE}?action=obtenirMenus`)
-            .then(res => res.json())
-            .then(donnees => { menusServeurComplets = donnees; genererInterfaceAdmin(); });
-        }
-
         function genererInterfaceAdmin() {
             const baseLundi = chargerBaseLundi(semaineSelectionnee);
             document.getElementById('titre-dates').textContent = `Semaine du Lundi ${baseLundi.getDate()}/${baseLundi.getMonth() + 1}/${baseLundi.getFullYear()}`;
             const conteneur = document.getElementById('conteneur-jours');
-            if(!conteneur) return; conteneur.innerHTML = "";
+            conteneur.innerHTML = "";
             
             for (let i = 0; i < 5; i++) {
-                // CORRECTION : On force l'heure à midi (12:00:00) pour éviter le décalage UTC
                 let dateJour = new Date(baseLundi.getFullYear(), baseLundi.getMonth(), baseLundi.getDate() + i, 12, 0, 0);
-                
-                let isoClé = dateJour.toISOString().split('T')[0];
+                let isoClé = `${dateJour.getFullYear()}-${(dateJour.getMonth() + 1).toString().padStart(2, '0')}-${dateJour.getDate().toString().padStart(2, '0')}`;
                 let menuJour = menusServeurComplets[isoClé] || { A: "", B: "" };
                 
                 const bloc = document.createElement('div');
@@ -135,16 +177,13 @@
         function chargerInscriptionsDuJour() {
             const select = document.getElementById('select-jour');
             const jourSelectionne = select.value;
-            const texteJour = select.options[select.selectedIndex].text;
-            document.getElementById('zone-registre').setAttribute('data-date-print', texteJour);
+            document.getElementById('section-registre').setAttribute('data-date-print', select.options[select.selectedIndex].text);
             
             fetch(`${URL_SCRIPT_GOOGLE}?action=obtenirInscriptions`)
             .then(res => res.json())
             .then(toutesLesInscriptions => {
                 let commandesDuJour = toutesLesInscriptions.filter(c => c.date === jourSelectionne);
-                let mapUniq = new Map();
-                commandesDuJour.forEach(c => mapUniq.set(c.nom, c));
-                let listeCommandes = Array.from(mapUniq.values());
+                let listeCommandes = Array.from(new Map(commandesDuJour.map(c => [c.nom, c])).values());
 
                 function construireTableau(list, idCorps, idTable, idVide, idSousTotal) {
                     const corps = document.getElementById(idCorps); 
@@ -159,35 +198,24 @@
                     document.getElementById(idTable).style.display = "table";
                     document.getElementById(idSousTotal).textContent = `${list.length} repas`;
 
-                    const menuA = list.filter(c => c.menu === "Menu A");
-                    const menuB = list.filter(c => c.menu === "Menu B");
-
-                    function ajouterEntete(titre, classe) {
-                        let row = document.createElement('tr');
-                        row.innerHTML = `<td colspan="3" style="background:${classe==='A'?'#fff7ed':'#f0fdf4'}; color:${classe==='A'?'#9a3412':'#166534'}; font-weight:800; font-size:12px; padding:8px 12px; border-bottom:1px solid ${classe==='A'?'#fed7aa':'#bbf7d0'};">${titre}</td>`;
-                        corps.appendChild(row);
-                    }
-
-                    if (menuA.length > 0) {
-                        ajouterEntete("🍖 SECTION MENU A (" + menuA.length + ")", "A");
-                        menuA.forEach(cmd => {
-                            let h = (cmd.heure.length > 5) ? cmd.heure.substring(11, 16) : cmd.heure.replace("'", "");
-                            let r = document.createElement('tr');
-                            r.innerHTML = `<td style="width:40px;">⬜</td><td><strong>${cmd.nom}</strong></td><td>${h}</td>`;
-                            corps.appendChild(r);
-                        });
-                    }
-                    if (menuB.length > 0) {
-                        ajouterEntete("🌿 SECTION MENU B (" + menuB.length + ")", "B");
-                        menuB.forEach(cmd => {
-                            let h = (cmd.heure.length > 5) ? cmd.heure.substring(11, 16) : cmd.heure.replace("'", "");
-                            let r = document.createElement('tr');
-                            r.innerHTML = `<td style="width:40px;">⬜</td><td><strong>${cmd.nom}</strong></td><td>${h}</td>`;
-                            corps.appendChild(r);
-                        });
-                    }
+                    ['Menu A', 'Menu B'].forEach(m => {
+                        const items = list.filter(c => c.menu === m);
+                        if (items.length > 0) {
+                            let tr = document.createElement('tr');
+                            let bgColor = (m === 'Menu A') ? '#fef3c7' : '#d1fae5';
+                            let textColor = (m === 'Menu A') ? '#b45309' : '#047857';
+                            tr.innerHTML = `<td colspan="3" style="background:${bgColor}; color:${textColor}; font-weight:800; font-size:12px; text-transform:uppercase; padding: 8px 12px;">
+                                                ${m} (${items.length})
+                                            </td>`;
+                            corps.appendChild(tr);
+                            items.forEach(cmd => {
+                                let r = document.createElement('tr');
+                                r.innerHTML = `<td>⬜</td><td><strong>${cmd.nom}</strong></td><td>${cmd.heure}</td>`;
+                                corps.appendChild(r);
+                            });
+                        }
+                    });
                 }
-
                 document.getElementById('total-a').textContent = listeCommandes.filter(c => c.menu === "Menu A").length;
                 document.getElementById('total-b').textContent = listeCommandes.filter(c => c.menu === "Menu B").length;
                 construireTableau(listeCommandes.filter(c => c.mode === "Sur place"), 'corps-place', 'table-place', 'vide-place', 'sous-total-place');
@@ -196,36 +224,29 @@
         }
 
         window.onload = () => {
+            fetch(`${URL_SCRIPT_GOOGLE}?action=obtenirMenus`)
+            .then(res => res.json())
+            .then(donnees => { menusServeurComplets = donnees; });
+
             const select = document.getElementById('select-jour');
-            const maintenant = new Date();
-            const aujourdhui = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate());
-            let joursAjoutes = 0;
-            for (let i = 0; i < 30 && joursAjoutes < 10; i++) {
-                let d = new Date(aujourdhui);
-                d.setDate(aujourdhui.getDate() + i);
-                if (d.getDay() === 0 || d.getDay() === 6 || d < aujourdhui) continue;
-                let iso = d.toISOString().split('T')[0];
+            const aujourdhui = new Date();
+            for (let i = 0; i < 30; i++) {
+                let d = new Date(aujourdhui.getFullYear(), aujourdhui.getMonth(), aujourdhui.getDate() + i);
+                if (d.getDay() === 0 || d.getDay() === 6) continue;
                 let opt = document.createElement('option');
-                opt.value = iso;
+                opt.value = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
                 opt.textContent = d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
                 select.appendChild(opt);
-                joursAjoutes++;
             }
-            select.selectedIndex = 0;
-            document.querySelectorAll('input[name="choix_semaine"]').forEach(radio => {
-                radio.addEventListener('change', (e) => { semaineSelectionnee = e.target.value; genererInterfaceAdmin(); });
-            });
-            récupererMenusDistants(); 
             chargerInscriptionsDuJour();
         };
 
         document.getElementById('form-admin').addEventListener('submit', function(e) {
             e.preventDefault();
-            const blocsConfiguration = document.querySelectorAll('.jour-bloc');
             let paquetsMenus = [];
-            blocsConfiguration.forEach(bloc => {
-                let dateCle = bloc.querySelector('.jour-titre').getAttribute('data-date');
-                paquetsMenus.push({ date: dateCle, menuA: bloc.querySelector(`input[id="a-${dateCle}"]`).value, menuB: bloc.querySelector(`input[id="b-${dateCle}"]`).value });
+            document.querySelectorAll('.jour-bloc').forEach(bloc => {
+                let d = bloc.querySelector('.jour-titre').getAttribute('data-date');
+                paquetsMenus.push({ date: d, menuA: bloc.querySelector(`input[id="a-${d}"]`).value, menuB: bloc.querySelector(`input[id="b-${d}"]`).value });
             });
             fetch(URL_SCRIPT_GOOGLE, { method: "POST", mode: "no-cors", body: new URLSearchParams({ action: "enregistrerMenus", donnees: JSON.stringify(paquetsMenus) }) }).then(() => alert("🎉 Publié !"));
         });

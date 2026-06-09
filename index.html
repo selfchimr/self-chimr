@@ -158,14 +158,12 @@
             for (let i = 0; i < 15; i++) {
                 if (affiches >= 5) break;
                 
-                // CORRECTION : Forçage à 12:00:00 pour éviter le basculement de date UTC
                 let d = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate() + i, 12, 0, 0);
                 let jourSemaine = d.getDay();
                 
                 if (jourSemaine === 0 || jourSemaine === 6) continue;
                 if (i === 0 && heureActuelle >= 11) continue;
 
-                // Construction manuelle de la clé (Format YYYY-MM-DD fixe)
                 let annee = d.getFullYear();
                 let mois = (d.getMonth() + 1).toString().padStart(2, '0');
                 let jour = d.getDate().toString().padStart(2, '0');
@@ -213,7 +211,8 @@
                     nom: nomSaisi,
                     menu: document.querySelector('input[name="choix_menu"]:checked').value,
                     mode: document.querySelector('input[name="mode_retrait"]:checked').value,
-                    heure: document.getElementById('heure_retrait').value
+                    // CORRECTION : Conversion forcée en chaîne de texte simple
+                    heure: document.getElementById('heure_retrait').value.toString()
                 })
             }).then(() => {
                 alert("🎉 Réservation enregistrée !");
