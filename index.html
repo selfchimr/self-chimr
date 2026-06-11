@@ -154,6 +154,14 @@
         
         <div id="app-contenu" class="hidden">
 
+            <!-- Champ nom au-dessus des onglets -->
+            <div class="bloc-info" style="margin-bottom: 16px;">
+                <div class="input-group" style="margin:0;">
+                    <label>👤 Nom & Prénom</label>
+                    <input type="text" id="nom_client" placeholder="Votre nom complet">
+                </div>
+            </div>
+
             <!-- Onglets -->
             <div class="tabs">
                 <button id="tab-reserver" class="actif" onclick="afficherOnglet('reserver')">🍴 Réserver</button>
@@ -208,10 +216,6 @@
                 <div>
                     <h2>3. Finaliser la réservation</h2>
                     <div class="bloc-info">
-                        <div class="input-group">
-                            <label>Nom & Prénom</label>
-                            <input type="text" id="nom_client" required placeholder="Votre nom complet">
-                        </div>
                         <div class="input-group">
                             <label>Heure du retrait</label>
                             <select id="heure_retrait">
@@ -611,6 +615,12 @@
         document.getElementById('form-commande').addEventListener('submit', function(e) {
             e.preventDefault();
             const nomSaisi = document.getElementById('nom_client').value.trim();
+            if (!nomSaisi) {
+                document.getElementById('nom_client').focus();
+                document.getElementById('nom_client').style.borderColor = '#ef4444';
+                setTimeout(() => document.getElementById('nom_client').style.borderColor = '', 2000);
+                return;
+            }
             const heureSaisie = document.getElementById('heure_retrait').value;
             
             // Mémoriser nom et heure
