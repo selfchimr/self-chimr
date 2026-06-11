@@ -9,6 +9,20 @@
         body { background-color: #f8fafc; color: #0f172a; padding-bottom: 40px; }
         header { background: white; padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
         .logo-title { font-size: 20px; font-weight: 800; color: #0f172a; }
+        .btn-admin { background: none; border: 1px solid #e2e8f0; border-radius: 10px; padding: 7px 12px; font-size: 11px; font-weight: 700; color: #94a3b8; cursor: pointer; }
+        .btn-admin:hover { border-color: #cbd5e1; color: #64748b; }
+
+        /* Modale mot de passe */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .modal-box { background: white; border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 340px; }
+        .modal-titre { font-size: 17px; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
+        .modal-sous-titre { font-size: 13px; color: #64748b; margin-bottom: 20px; }
+        .modal-box input[type=password] { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 15px; outline: none; margin-bottom: 10px; }
+        .modal-box input[type=password].erreur { border-color: #ef4444; background: #fef2f2; }
+        .modal-msg-erreur { font-size: 12px; color: #ef4444; font-weight: 600; margin-bottom: 10px; display: none; }
+        .modal-btns { display: flex; gap: 8px; }
+        .modal-btns .btn-annuler-modal { flex: 1; background: #f1f5f9; border: none; border-radius: 12px; padding: 12px; font-size: 13px; font-weight: 700; color: #64748b; cursor: pointer; }
+        .modal-btns .btn-valider-modal { flex: 1; background: #0f172a; border: none; border-radius: 12px; padding: 12px; font-size: 13px; font-weight: 700; color: white; cursor: pointer; }
         main { max-width: 450px; margin: 0 auto; padding: 16px; }
         h2 { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 12px; padding-left: 4px; }
         
@@ -98,13 +112,42 @@
         .confirm-annul .btn-non { background: #e2e8f0; color: #475569; border: none; font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 8px; cursor: pointer; }
         .resa-vide { text-align: center; padding: 30px 16px; color: #94a3b8; font-size: 14px; font-weight: 600; }
         .resa-vide span { display: block; font-size: 32px; margin-bottom: 10px; }
+
+        /* Bannière alerte menu modifié */
+        .banniere-alerte { background: #fff7ed; border: 2px solid #f97316; border-radius: 16px; padding: 14px 16px; margin-bottom: 16px; }
+        .banniere-alerte .alerte-titre { font-size: 14px; font-weight: 800; color: #c2410c; margin-bottom: 4px; }
+        .banniere-alerte .alerte-detail { font-size: 12px; color: #9a3412; }
+        .resa-item.alerte-menu { border-color: #f97316; border-width: 2px; }
+        .alerte-menu-badge { display: flex; align-items: center; gap: 6px; background: #fff7ed; border: 1px solid #fed7aa; color: #c2410c; font-size: 11px; font-weight: 700; padding: 6px 8px; border-radius: 8px; margin-bottom: 8px; }
+        .action-requise { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; padding: 12px; margin-top: 10px; }
+        .action-requise p { font-size: 12px; color: #c2410c; font-weight: 700; margin-bottom: 8px; }
+        .action-btns { display: flex; flex-direction: column; gap: 6px; }
+        .btn-action { border: none; font-size: 12px; font-weight: 700; padding: 10px 12px; border-radius: 8px; cursor: pointer; text-align: left; width: 100%; }
+        .btn-garder { background: #dcfce7; color: #15803d; }
+        .btn-changer { background: #dbeafe; color: #1d4ed8; }
+        .btn-annuler-menu { background: #fee2e2; color: #dc2626; }
     </style>
 </head>
 <body>
 
     <header>
         <div><h1 class="logo-title">Self CHIMR</h1></div>
+        <button class="btn-admin" onclick="ouvrirModalAdmin()">⚙️ Admin</button>
     </header>
+
+    <!-- Modale mot de passe admin -->
+    <div id="modal-admin" class="modal-overlay hidden">
+        <div class="modal-box">
+            <div class="modal-titre">🔒 Accès administration</div>
+            <div class="modal-sous-titre">Entrez le mot de passe pour accéder à la cuisine.</div>
+            <input type="password" id="input-mdp" placeholder="Mot de passe" onkeydown="if(event.key==='Enter') validerMdp()">
+            <div id="modal-erreur" class="modal-msg-erreur">Mot de passe incorrect.</div>
+            <div class="modal-btns">
+                <button class="btn-annuler-modal" onclick="fermerModalAdmin()">Annuler</button>
+                <button class="btn-valider-modal" onclick="validerMdp()">Accéder</button>
+            </div>
+        </div>
+    </div>
 
     <main>
         <div id="zone-chargement" class="chargement">🔄 Récupération des menus en cours...</div>
@@ -116,6 +159,9 @@
                 <button id="tab-reserver" class="actif" onclick="afficherOnglet('reserver')">🍴 Réserver</button>
                 <button id="tab-reservations" onclick="afficherOnglet('reservations')">📅 Mes réservations</button>
             </div>
+
+            <!-- Bannière alertes menu modifié -->
+            <div id="zone-alertes"></div>
 
             <!-- Contenu onglet Réserver -->
             <div id="contenu-reserver">
@@ -199,6 +245,32 @@
 
     <script>
         const URL_SCRIPT_GOOGLE = "https://script.google.com/macros/s/AKfycbzcCFLxV_IxqN6zToLlGcCysRZKlbZWFYv2vla3vx8nSV2-BTzdubh9GLmIJ9XMVhjD/exec";
+        const MOT_DE_PASSE_ADMIN = "cuisine2024"; // ← change ce mot de passe
+
+        function ouvrirModalAdmin() {
+            document.getElementById('modal-admin').classList.remove('hidden');
+            document.getElementById('input-mdp').value = '';
+            document.getElementById('modal-erreur').style.display = 'none';
+            document.getElementById('input-mdp').classList.remove('erreur');
+            setTimeout(() => document.getElementById('input-mdp').focus(), 100);
+        }
+
+        function fermerModalAdmin() {
+            document.getElementById('modal-admin').classList.add('hidden');
+        }
+
+        function validerMdp() {
+            const mdp = document.getElementById('input-mdp').value;
+            if (mdp === MOT_DE_PASSE_ADMIN) {
+                fermerModalAdmin();
+                window.location.href = 'admin.html';
+            } else {
+                document.getElementById('input-mdp').classList.add('erreur');
+                document.getElementById('modal-erreur').style.display = 'block';
+                document.getElementById('input-mdp').value = '';
+                document.getElementById('input-mdp').focus();
+            }
+        }
         const JOURS_NOM = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
         const MOIS_FR = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
         let dateSelectionneeISO = "";
@@ -240,62 +312,136 @@
             .then(res => res.json())
             .then(data => {
                 const maintenant = new Date();
-                const heure = maintenant.getHours();
                 const minutesMaintenant = maintenant.getHours() * 60 + maintenant.getMinutes();
-                // Clé du jour courant au format YYYY-MM-DD local
                 const auj = `${maintenant.getFullYear()}-${String(maintenant.getMonth()+1).padStart(2,'0')}-${String(maintenant.getDate()).padStart(2,'0')}`;
 
                 const mesSesas = data
-                        .filter(r => r.nom && r.nom.trim().toLowerCase() === nom.toLowerCase())
-                        .filter(r => {
-                            const datePropre = (r.date || '').toString().replace(/'/g, '').trim();
-                            if (datePropre > auj) return true;           // jours futurs : toujours affichés
-                            if (datePropre === auj) return minutesMaintenant < 14 * 60; // aujourd'hui : jusqu'à 14h00
-                            return false;                                 // jours passés : masqués
-                        })
-                        .sort((a, b) => {
-                            const da = (a.date || '').toString().replace(/'/g, '').trim();
-                            const db = (b.date || '').toString().replace(/'/g, '').trim();
-                            return da.localeCompare(db);
-                        });
+                    .filter(r => r.nom && r.nom.trim().toLowerCase() === nom.toLowerCase())
+                    .filter(r => {
+                        const datePropre = (r.date || '').toString().replace(/'/g, '').trim();
+                        if (datePropre > auj) return true;
+                        if (datePropre === auj) return minutesMaintenant < 14 * 60;
+                        return false;
+                    })
+                    .sort((a, b) => {
+                        const da = (a.date || '').toString().replace(/'/g, '').trim();
+                        const db = (b.date || '').toString().replace(/'/g, '').trim();
+                        return da.localeCompare(db);
+                    });
+
                 if (mesSesas.length === 0) {
                     zone.innerHTML = '<div class="resa-vide"><span>🗓️</span>Aucune réservation trouvée<br>pour <strong>' + nom + '</strong>.</div>';
-                } else {
-                    zone.innerHTML = '<h2 style="margin-bottom:12px;">Réservations de ' + nom + '</h2>' +
-                        mesSesas.map(r => {
-                            const isA = r.menu && r.menu.includes('A');
-                            const badgeClass = isA ? 'badge-menu-a' : 'badge-menu-b';
-                            const badgeLabel = isA ? '🍖 Menu A' : '🌿 Menu B';
-                            // Le plat commandé est dans menusDuServeur, sinon on affiche le menu seul
-                            const datePropre = (r.date || '').toString().replace(/'/g, '').trim();
-                            const menusJour = menusDuServeur[datePropre] || {};
-                            const platNom = isA ? (menusJour.A || '') : (menusJour.B || '');
-                            const platAffiche = platNom
-                                ? `<div class="resa-plat">${platNom}</div>`
-                                : `<div class="resa-plat" style="color:#94a3b8; font-style:italic;">Menu à venir</div>`;
-                            return `<div class="resa-item" id="resa-${datePropre}">
-                                <div class="resa-header">
-                                    <div class="resa-date">${formaterDate(r.date)}</div>
-                                    <span class="${badgeClass}">${badgeLabel}</span>
-                                </div>
-                                ${platAffiche}
-                                <div class="resa-detail">${r.mode}${r.heure ? ' · ' + r.heure : ''}</div>
-                                <div class="resa-footer">
-                                    <button class="btn-annuler" onclick="demanderAnnulation('${datePropre}', '${nom}')">🗑️ Annuler</button>
-                                </div>
-                                <div class="confirm-annul hidden" id="confirm-${datePropre}">
-                                    <span>Confirmer l'annulation ?</span>
-                                    <div class="confirm-btns">
-                                        <button class="btn-non" onclick="annulerConfirm('${datePropre}')">Non</button>
-                                        <button class="btn-oui" onclick="confirmerAnnulation('${datePropre}', '${nom}')">Oui, annuler</button>
-                                    </div>
-                                </div>
-                            </div>`;
-                        }).join('');
+                    return;
                 }
+
+                // Construire les bannières d'alerte globales
+                let alertesHTML = '';
+                mesSesas.forEach(r => {
+                    const isA = r.menu && r.menu.includes('A');
+                    const datePropre = (r.date || '').toString().replace(/'/g, '').trim();
+                    const menusJour = menusDuServeur[datePropre] || {};
+                    const aAlerte = isA ? menusJour.alerteA : menusJour.alerteB;
+                });
+                // Ne pas toucher à zone-alertes ici, géré par verifierAlertesDemarrage
+
+                // Construire les cartes
+                zone.innerHTML = '<h2 style="margin-bottom:12px;">Réservations de ' + nom + '</h2>' +
+                    mesSesas.map(r => {
+                        const isA = r.menu && r.menu.includes('A');
+                        const badgeClass = isA ? 'badge-menu-a' : 'badge-menu-b';
+                        const badgeLabel = isA ? '🍖 Menu A' : '🌿 Menu B';
+                        const datePropre = (r.date || '').toString().replace(/'/g, '').trim();
+                        const menusJour = menusDuServeur[datePropre] || {};
+                        const platNom = isA ? (menusJour.A || '') : (menusJour.B || '');
+                        const autreNom = isA ? (menusJour.B || '') : (menusJour.A || '');
+                        const autreMenu = isA ? 'Menu B' : 'Menu A';
+                        const aAlerte = isA ? menusJour.alerteA : menusJour.alerteB;
+
+                        const platAffiche = platNom
+                            ? `<div class="resa-plat">${platNom}</div>`
+                            : `<div class="resa-plat" style="color:#94a3b8; font-style:italic;">Menu à venir</div>`;
+
+                        const alerteBadge = aAlerte
+                            ? `<div class="alerte-menu-badge">⚠️ Menu modifié par la cuisine — action requise</div>` : '';
+
+                        const actionRequise = aAlerte ? `
+                            <div class="action-requise" id="action-${datePropre}">
+                                <p>⚠️ Ce menu a changé. Que souhaitez-vous faire ?</p>
+                                <div class="action-btns">
+                                    <button class="btn-action btn-garder" onclick="garderNouveauMenu('${datePropre}')">
+                                        ✅ Garder le nouveau menu${platNom ? ' (' + platNom + ')' : ''}
+                                    </button>
+                                    <button class="btn-action btn-changer" onclick="changerPourAutreMenu('${datePropre}', '${nom}', '${autreMenu}')">
+                                        🔄 Choisir l'autre menu${autreNom ? ' (' + autreNom + ')' : ' (' + autreMenu + ')'}
+                                    </button>
+                                    <button class="btn-action btn-annuler-menu" onclick="confirmerAnnulation('${datePropre}', '${nom}')">
+                                        ❌ Annuler ma réservation
+                                    </button>
+                                </div>
+                            </div>` : '';
+
+                        // Annulation possible jusqu'à 10h30 le jour même
+                        const peutAnnuler = datePropre > auj || (datePropre === auj && minutesMaintenant < 10 * 60 + 30);
+
+                        return `<div class="resa-item ${aAlerte ? 'alerte-menu' : ''}" id="resa-${datePropre}">
+                            ${alerteBadge}
+                            <div class="resa-header">
+                                <div class="resa-date">${formaterDate(r.date)}</div>
+                                <span class="${badgeClass}">${badgeLabel}</span>
+                            </div>
+                            ${platAffiche}
+                            <div class="resa-detail">${r.mode}${r.heure ? ' · ' + r.heure : ''}</div>
+                            ${actionRequise}
+                            ${peutAnnuler && !aAlerte ? `
+                            <div class="resa-footer">
+                                <button class="btn-annuler" onclick="demanderAnnulation('${datePropre}', '${nom}')">🗑️ Annuler</button>
+                            </div>
+                            <div class="confirm-annul hidden" id="confirm-${datePropre}">
+                                <span>Confirmer l'annulation ?</span>
+                                <div class="confirm-btns">
+                                    <button class="btn-non" onclick="annulerConfirm('${datePropre}')">Non</button>
+                                    <button class="btn-oui" onclick="confirmerAnnulation('${datePropre}', '${nom}')">Oui, annuler</button>
+                                </div>
+                            </div>` : ''}
+                        </div>`;
+                    }).join('');
             })
             .catch(() => {
                 zone.innerHTML = '<div class="resa-vide"><span>⚠️</span>Erreur de connexion.<br>Réessaie dans un instant.</div>';
+            });
+        }
+
+        function garderNouveauMenu(date) {
+            // L'utilisateur accepte le nouveau menu : on masque juste le bloc action
+            document.getElementById('action-' + date).innerHTML = '<p style="color:#15803d;">✅ Choix confirmé, à bientôt au self !</p>';
+        }
+
+        function changerPourAutreMenu(date, nom, nouveauMenu) {
+            const btn = document.querySelector(`#action-${date} .btn-changer`);
+            btn.disabled = true;
+            btn.textContent = '...';
+            // Annuler l'ancienne réservation puis en créer une nouvelle avec l'autre menu
+            const menusJour = menusDuServeur[date] || {};
+            const heureSauvegardee = localStorage.getItem('heureUserSelf') || '12:00';
+            fetch(URL_SCRIPT_GOOGLE, {
+                method: 'POST', mode: 'no-cors',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ action: 'annulerInscription', nom, date })
+            }).then(() => {
+                return fetch(URL_SCRIPT_GOOGLE, {
+                    method: 'POST', mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ action: 'enregistrerCommande', nom, date, menu: nouveauMenu, mode: 'Sur place', heure: heureSauvegardee })
+                });
+            }).then(() => {
+                document.getElementById('action-' + date).innerHTML = `<p style="color:#1d4ed8;">✅ Réservation mise à jour sur le ${nouveauMenu} !</p>`;
+                // Mettre à jour le badge menu sur la carte
+                const carte = document.getElementById('resa-' + date);
+                const isNowA = nouveauMenu.includes('A');
+                carte.querySelector('.resa-header span').className = isNowA ? 'badge-menu-a' : 'badge-menu-b';
+                carte.querySelector('.resa-header span').textContent = isNowA ? '🍖 Menu A' : '🌿 Menu B';
+                const platNom = isNowA ? (menusJour.A || '') : (menusJour.B || '');
+                if (platNom) carte.querySelector('.resa-plat').textContent = platNom;
             });
         }
 
@@ -336,10 +482,52 @@
                 document.getElementById('zone-chargement').classList.add('hidden');
                 document.getElementById('app-contenu').classList.remove('hidden');
                 genererCalendrier();
+                verifierAlertesDemarrage();
+                verifierAlertesUtilisateur();
             })
             .catch(() => {
                 document.getElementById('zone-chargement').innerHTML = "❌ Impossible de charger les menus.<br><span style='font-size:12px;color:#94a3b8;'>Vérifie ta connexion et recharge la page.</span>";
             });
+        }
+
+        function verifierAlertesUtilisateur() {
+            const nom = localStorage.getItem('nomUserSelf') || '';
+            if (!nom) return;
+
+            fetch(URL_SCRIPT_GOOGLE + "?action=obtenirInscriptions")
+            .then(res => res.json())
+            .then(data => {
+                const maintenant = new Date();
+                const minutesMaintenant = maintenant.getHours() * 60 + maintenant.getMinutes();
+                const auj = `${maintenant.getFullYear()}-${String(maintenant.getMonth()+1).padStart(2,'0')}-${String(maintenant.getDate()).padStart(2,'0')}`;
+
+                const alertes = data
+                    .filter(r => r.nom && r.nom.trim().toLowerCase() === nom.toLowerCase())
+                    .filter(r => {
+                        const d = (r.date || '').toString().replace(/'/g, '').trim();
+                        return d > auj || (d === auj && minutesMaintenant < 14 * 60);
+                    })
+                    .filter(r => {
+                        const d = (r.date || '').toString().replace(/'/g, '').trim();
+                        const menusJour = menusDuServeur[d] || {};
+                        const isA = r.menu && r.menu.includes('A');
+                        return isA ? menusJour.alerteA : menusJour.alerteB;
+                    });
+
+                const zone = document.getElementById('zone-alertes');
+                if (alertes.length === 0) { zone.innerHTML = ''; return; }
+
+                zone.innerHTML = alertes.map(r => {
+                    const d = (r.date || '').toString().replace(/'/g, '').trim();
+                    return `<div class="banniere-alerte">
+                        <div>
+                            <div class="alerte-titre">⚠️ Menu modifié le ${formaterDate(r.date)}</div>
+                            <div class="alerte-detail">Votre ${r.menu} a été modifié par la cuisine. <a href="#" style="color:#c2410c; font-weight:800;" onclick="event.preventDefault(); afficherOnglet('reservations')">Mes réservations →</a></div>
+                        </div>
+                    </div>`;
+                }).join('');
+            })
+            .catch(() => {}); // Silencieux si erreur, pas bloquant
         }
 
         function genererCalendrier() {
@@ -468,7 +656,60 @@
             if (nomSauvegarde) document.getElementById('nom_client').value = nomSauvegarde;
             const heureSauvegardee = localStorage.getItem('heureUserSelf');
             if (heureSauvegardee) document.getElementById('heure_retrait').value = heureSauvegardee;
+
+            // Sauvegarder le nom dès la saisie (sans attendre la réservation)
+            document.getElementById('nom_client').addEventListener('input', function() {
+                const val = this.value.trim();
+                if (val.length > 2) {
+                    localStorage.setItem('nomUserSelf', val);
+                    // Rafraîchir les alertes et les réservations si l'onglet est actif
+                    verifierAlertesDemarrage();
+                    if (document.getElementById('tab-reservations').classList.contains('actif')) {
+                        chargerMesReservations();
+                    }
+                }
+            });
         });
+
+        // Appelée après chargerMenus() une fois menusDuServeur rempli
+        function verifierAlertesDemarrage() {
+            const nom = localStorage.getItem('nomUserSelf');
+            if (!nom) return;
+
+            fetch(URL_SCRIPT_GOOGLE + "?action=obtenirInscriptions")
+            .then(res => res.json())
+            .then(data => {
+                const maintenant = new Date();
+                const auj = `${maintenant.getFullYear()}-${String(maintenant.getMonth()+1).padStart(2,'0')}-${String(maintenant.getDate()).padStart(2,'0')}`;
+                const minutesMaintenant = maintenant.getHours() * 60 + maintenant.getMinutes();
+
+                const alertes = data
+                    .filter(r => r.nom && r.nom.trim().toLowerCase() === nom.toLowerCase())
+                    .filter(r => {
+                        const dp = (r.date || '').toString().replace(/'/g, '').trim();
+                        return dp > auj || (dp === auj && minutesMaintenant < 14 * 60);
+                    })
+                    .filter(r => {
+                        const dp = (r.date || '').toString().replace(/'/g, '').trim();
+                        const isA = r.menu && r.menu.includes('A');
+                        const menusJour = menusDuServeur[dp] || {};
+                        return isA ? menusJour.alerteA : menusJour.alerteB;
+                    });
+
+                if (alertes.length === 0) return;
+
+                const html = alertes.map(r => `
+                    <div class="banniere-alerte">
+                        <div>
+                            <div class="alerte-titre">⚠️ Menu modifié le ${formaterDate(r.date)}</div>
+                            <div class="alerte-detail">Votre ${r.menu} a été modifié par la cuisine. <a href="#" style="color:#c2410c; font-weight:800;" onclick="event.preventDefault(); afficherOnglet('reservations')">Mes réservations →</a></div>
+                        </div>
+                    </div>`).join('');
+
+                document.getElementById('zone-alertes').innerHTML = html;
+            })
+            .catch(() => {}); // Silencieux au démarrage
+        }
     </script>
 </body>
 </html>
