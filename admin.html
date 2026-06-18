@@ -1,288 +1,768 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin • Gestion du Self CHIMR</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍳</text></svg>">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: #f1f5f9; color: #0f172a; padding: 20px; }
-        main { max-width: 750px; margin: 0 auto; background: white; padding: 24px; border-radius: 20px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
-        h1 { font-size: 22px; font-weight: 800; margin-bottom: 5px; color: #0f172a; }
-        .subtitle { font-size: 14px; color: #64748b; margin-bottom: 20px; }
-        .segmented { display: flex; background: #e2e8f0; padding: 4px; border-radius: 14px; margin-bottom: 24px; }
-        .segmented label { flex: 1; text-align: center; padding: 12px; font-size: 14px; font-weight: 700; color: #64748b; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
-        .segmented input:checked + label { background: #0f172a; color: white; }
+        :root {
+            --bg: #f1f5f9;
+            --white: #ffffff;
+            --navy: #0f172a;
+            --navy-light: #1e293b;
+            --slate: #64748b;
+            --slate-light: #94a3b8;
+            --border: #e2e8f0;
+            --border-light: #f8fafc;
+            --amber: #f59e0b;
+            --amber-bg: #fef3c7;
+            --amber-text: #b45309;
+            --green: #10b981;
+            --green-bg: #d1fae5;
+            --green-text: #047857;
+            --red: #ef4444;
+            --red-bg: #fef2f2;
+            --red-border: #fecaca;
+            --red-text: #dc2626;
+            --blue: #0284c7;
+            --blue-bg: #e0f2fe;
+            --blue-text: #075985;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: var(--bg); color: var(--navy); }
+
+        /* ─── ÉCRAN DE CONNEXION ─── */
+        #ecran-login {
+            min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
+        .login-card {
+            background: var(--white); border-radius: 20px; padding: 36px 28px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.1); max-width: 360px; width: 100%; text-align: center;
+        }
+        .login-icon { font-size: 40px; margin-bottom: 12px; }
+        .login-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+        .login-sub { font-size: 13px; color: var(--slate); margin-bottom: 24px; }
+        .login-input {
+            width: 100%; padding: 14px 16px; background: var(--bg); border: 1.5px solid var(--border);
+            border-radius: var(--radius-md); font-size: 16px; font-weight: 600; color: var(--navy);
+            outline: none; margin-bottom: 12px; text-align: center; letter-spacing: 2px;
+            transition: border-color 0.15s;
+        }
+        .login-input:focus { border-color: var(--navy); }
+        .btn-login {
+            width: 100%; background: var(--navy); color: white; border: none;
+            font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+            padding: 14px; border-radius: var(--radius-md); cursor: pointer; transition: opacity 0.2s;
+        }
+        .btn-login:hover { opacity: 0.85; }
+        .login-erreur { color: var(--red-text); font-size: 13px; font-weight: 600; margin-top: 10px; display: none; }
+
+        /* ─── APP PRINCIPALE ─── */
+        #app-admin { display: none; min-height: 100vh; }
+
+        /* ─── HEADER ─── */
+        header {
+            background: var(--navy); color: white;
+            padding: 14px 24px; display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 50;
+        }
+        .h-logo { display: flex; align-items: center; gap: 10px; }
+        .h-icon { font-size: 22px; }
+        .h-title { font-size: 16px; font-weight: 800; }
+        .h-sub { font-size: 11px; color: #94a3b8; font-weight: 600; }
+        .btn-deconnexion { background: rgba(255,255,255,0.12); color: white; border: none; font-size: 11px; font-weight: 700; padding: 7px 14px; border-radius: 8px; cursor: pointer; }
+
+        /* ─── LAYOUT ─── */
+        .app-body { max-width: 860px; margin: 0 auto; padding: 24px 16px; }
+
+        /* ─── TABS ─── */
+        .tabs { display: flex; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 4px; margin-bottom: 24px; gap: 4px; }
+        .tabs button { flex: 1; background: none; border: none; padding: 11px 8px; font-size: 13px; font-weight: 700; color: var(--slate); border-radius: var(--radius-md); cursor: pointer; transition: all 0.18s; }
+        .tabs button.actif { background: var(--navy); color: white; }
         .hidden { display: none !important; }
-        .jour-bloc { border: 1px solid #e2e8f0; padding: 16px; border-radius: 14px; margin-bottom: 16px; background: #f8fafc; }
-        .jour-header { margin-bottom: 12px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 8px; }
-        .jour-titre { font-size: 15px; font-weight: 800; color: #0284c7; text-transform: capitalize; }
-        .input-group { margin-bottom: 10px; }
-        .input-group label { display: block; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
-        .input-group input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
-        .input-group input.modifie { border-color: #f97316; background: #fff7ed; }
-        .input-row { display: flex; align-items: center; gap: 8px; }
-        .input-row input[type=text] { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
-        .input-row input[type=text].modifie { border-color: #f97316; background: #fff7ed; }
-        .btn-alerte { background: none; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 10px; cursor: pointer; font-size: 15px; color: #cbd5e1; transition: all 0.15s; flex-shrink: 0; line-height: 1; }
-        .btn-alerte.actif { border-color: #f97316; color: #f97316; background: #fff7ed; }
-        .btn-sauvegarder { width: 100%; background: #0f172a; color: white; border: none; font-size: 14px; font-weight: 700; text-transform: uppercase; padding: 16px; border-radius: 12px; cursor: pointer; margin-top: 10px; }
-        .date-semaine-titre { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 15px; text-align: center; background: #e0f2fe; padding: 8px; border-radius: 8px; }
-        
-        /* Styles Registre */
-        .select-jour-registre { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; font-weight: 600; margin-bottom: 15px; background: #f8fafc; color: #0f172a; }
-        .stats-grid { display: flex; gap: 10px; margin-bottom: 25px; }
-        .stat-card { flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 10px; text-align: center; }
-        .stat-card .val { font-size: 20px; font-weight: 800; color: #0f172a; }
-        .stat-card .lbl { font-size: 11px; color: #64748b; font-weight: 700; }
-        .bloc-tableau { margin-bottom: 30px; background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; }
-        .titre-tableau { font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #0f172a; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid #0f172a; display: flex; justify-content: space-between; }
-        .titre-tableau .subtotal { font-size: 12px; color: #64748b; font-weight: 700; }
-        table { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 5px; }
-        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-        th { background: #f8fafc; font-weight: 700; color: #475569; font-size: 12px; text-transform: uppercase; }
-        .no-data { text-align: center; padding: 20px; color: #94a3b8; font-style: italic; font-size: 13px; }
-        .btn-imprimer { width: 100%; background: #0284c7; color: white; border: none; font-size: 13px; font-weight: 700; text-transform: uppercase; padding: 14px; border-radius: 10px; cursor: pointer; margin-top: 10px; }
 
-        /* --- OPTIMISATION SPÉCIFIQUE IMPRESSION --- */
+        /* ─── SECTION MENUS ─── */
+        .semaine-titre { font-size: 13px; font-weight: 700; color: var(--blue-text); background: var(--blue-bg); padding: 10px 14px; border-radius: var(--radius-md); margin-bottom: 18px; text-align: center; }
+        .jour-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 12px; }
+        .jour-bloc { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; }
+        .jour-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+        .jour-titre { font-size: 14px; font-weight: 800; color: var(--blue); text-transform: capitalize; }
+        .toggle-ferme-wrap { display: flex; align-items: center; gap: 6px; }
+        .toggle-ferme-wrap label { font-size: 11px; font-weight: 700; color: var(--slate); cursor: pointer; }
+        .toggle-ferme { width: 36px; height: 20px; appearance: none; background: var(--border); border-radius: 10px; cursor: pointer; position: relative; transition: background 0.2s; }
+        .toggle-ferme:checked { background: var(--red); }
+        .toggle-ferme::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: white; border-radius: 50%; transition: left 0.2s; }
+        .toggle-ferme:checked::after { left: 18px; }
+
+        /* ─── DEUX COLONNES : SUR PLACE | À EMPORTER ─── */
+        .colonnes-mode { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        @media (max-width: 460px) { .colonnes-mode { grid-template-columns: 1fr; } }
+        .colonne-mode-titre { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; color: var(--slate-light); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1.5px solid var(--border); display: flex; align-items: center; gap: 5px; }
+        .colonne-mode.emporter .colonne-mode-titre { color: var(--blue-text); border-bottom-color: #bfdbfe; }
+        .menu-bloc-admin { margin-bottom: 14px; }
+        .menu-bloc-admin:last-child { margin-bottom: 0; }
+        .emporter-tag { font-size: 9px; font-weight: 600; color: var(--blue); text-transform: none; opacity: 0.75; margin-left: 4px; }
+
+        .input-group { margin-bottom: 8px; }
+        .input-group:last-child { margin-bottom: 0; }
+        .input-label { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 800; color: var(--slate-light); text-transform: uppercase; margin-bottom: 5px; }
+        .input-group input { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; color: var(--navy); outline: none; transition: border-color 0.15s; background: var(--bg); }
+        .input-group input:focus { border-color: var(--navy); background: var(--white); }
+
+        /* ─── LIGNE LIMITE + ALERTE CÔTE À CÔTE ─── */
+        .ligne-options { display: flex; gap: 8px; align-items: stretch; }
+        .opt-limite, .opt-alerte { flex: 1; display: flex; align-items: center; gap: 6px; padding: 7px 9px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--border-light); min-width: 0; }
+        .opt-limite label, .opt-alerte label { font-size: 10px; font-weight: 700; color: var(--slate); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+        .opt-limite input[type="checkbox"], .opt-alerte input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; accent-color: var(--navy); flex-shrink: 0; }
+        .opt-alerte input[type="checkbox"] { accent-color: var(--amber-text); }
+        .opt-alerte.actif { background: var(--amber-bg); border-color: var(--amber); }
+        .opt-alerte.actif label { color: var(--amber-text); }
+        .limite-input-inline { width: 44px !important; padding: 4px 6px !important; font-size: 12px !important; font-weight: 700 !important; text-align: center; border-radius: 6px !important; flex-shrink: 0; }
+        .limite-input-inline:disabled { opacity: 0.35; cursor: not-allowed; }
+
+        .btn-publier { width: 100%; background: var(--navy); color: white; border: none; font-size: 14px; font-weight: 700; text-transform: uppercase; padding: 15px; border-radius: var(--radius-lg); cursor: pointer; margin-top: 6px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-publier:hover { opacity: 0.88; }
+        .btn-publier:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* ─── BANNIÈRE DE CONFIRMATION PUBLICATION ─── */
+        .banniere-pub {
+            position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(120px);
+            background: #059669; color: white;
+            padding: 16px 32px; border-radius: 50px;
+            font-size: 15px; font-weight: 800;
+            box-shadow: 0 12px 40px rgba(5,150,105,0.45);
+            display: flex; align-items: center; gap: 12px;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s;
+            opacity: 0; z-index: 999; white-space: nowrap;
+        }
+        .banniere-pub.visible { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .banniere-pub .pub-check { width: 32px; height: 32px; background: rgba(255,255,255,0.25); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+
+        /* ─── SECTION REGISTRE ─── */
+        .registre-top { display: flex; gap: 10px; align-items: center; margin-bottom: 18px; flex-wrap: wrap; }
+        .select-jour { flex: 1; min-width: 200px; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-md); font-size: 14px; font-weight: 600; color: var(--navy); background: var(--white); outline: none; cursor: pointer; }
+        .btn-actualiser { background: var(--blue-bg); color: var(--blue-text); border: 1px solid #bae6fd; font-size: 12px; font-weight: 700; padding: 11px 16px; border-radius: var(--radius-md); cursor: pointer; white-space: nowrap; }
+        .btn-csv { background: var(--green-bg); color: var(--green-text); border: 1px solid #a7f3d0; font-size: 12px; font-weight: 700; padding: 11px 16px; border-radius: var(--radius-md); cursor: pointer; white-space: nowrap; }
+
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+        @media (max-width: 500px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+        .stat-card { background: var(--white); border: 1px solid var(--border); padding: 14px 12px; border-radius: var(--radius-lg); text-align: center; }
+        .stat-val { font-size: 26px; font-weight: 800; color: var(--navy); }
+        .stat-lbl { font-size: 10px; color: var(--slate); font-weight: 700; margin-top: 2px; text-transform: uppercase; }
+        .stat-card.a .stat-val { color: var(--amber-text); }
+        .stat-card.b .stat-val { color: var(--green-text); }
+
+        /* Tableaux */
+        .tableaux-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        @media (max-width: 600px) { .tableaux-grid { grid-template-columns: 1fr; } }
+        .bloc-tableau { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; }
+        .titre-tableau { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--navy); display: flex; justify-content: space-between; align-items: center; }
+        .sous-total { font-size: 11px; color: var(--slate); font-weight: 700; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: var(--border-light); font-weight: 700; color: var(--slate); font-size: 11px; text-transform: uppercase; }
+        .no-data { text-align: center; padding: 20px; color: var(--slate-light); font-style: italic; font-size: 13px; }
+        .row-menu-a td { background: rgba(254,243,199,0.5); color: var(--amber-text); font-weight: 800; font-size: 11px; text-transform: uppercase; }
+        .row-menu-b td { background: rgba(209,250,229,0.5); color: var(--green-text); font-weight: 800; font-size: 11px; text-transform: uppercase; }
+        .chk { font-size: 14px; cursor: pointer; }
+        .heure-badge { font-size: 11px; font-weight: 700; color: var(--slate); background: var(--bg); padding: 2px 8px; border-radius: 20px; }
+
+        /* Actions bas */
+        .actions-bas { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+        .btn-imprimer { flex: 1; background: var(--blue); color: white; border: none; font-size: 13px; font-weight: 700; text-transform: uppercase; padding: 13px; border-radius: var(--radius-md); cursor: pointer; }
+
+        /* Indicateur chargement */
+        .chargement-inline { text-align: center; padding: 30px; color: var(--slate); font-weight: 600; }
+
+        /* ─── IMPRESSION ─── */
         @media print {
-            /* Masquer tout ce qui est inutile à l'impression */
-            body > main > h1, 
-            body > main > .subtitle, 
-            body > main > .segmented, 
-            #section-menus, 
-            .btn-imprimer, 
-            .select-jour-registre,
-            .stats-grid { 
-                display: none !important; 
+            #ecran-login, header, .tabs, .registre-top, .actions-bas, .stat-card, .stats-grid { display: none !important; }
+            body { background: white; }
+            .app-body { padding: 0; max-width: none; }
+            #section-registre::before {
+                content: "LISTE DES INSCRITS – " attr(data-date-print);
+                display: block; font-size: 15px; font-weight: 800; margin-bottom: 14px;
+                border-bottom: 2px solid #000; padding-bottom: 6px;
             }
-
-            /* Ajuster la largeur principale */
-            main { 
-                box-shadow: none; 
-                width: 100%; 
-                max-width: none; 
-                padding: 0; 
-            }
-
-            /* Mettre le titre personnalisé pour l'impression */
-            #section-registre::before { 
-                content: "LISTE DES INSCRITS : " attr(data-date-print); 
-                display: block; 
-                font-size: 16px; 
-                font-weight: 800; 
-                margin-bottom: 10px; 
-                border-bottom: 2px solid #000; 
-            }
-
-            /* Compacter les tableaux */
-            .bloc-tableau { margin-bottom: 5px; }
-            .titre-tableau { font-size: 11px; margin-bottom: 2px; }
-            
-            table { font-size: 10px !important; }
-            th, td { padding: 2px 4px !important; }
-            
-            /* Forcer l'affichage côte à côte */
-            #zone-tableaux { 
-                display: grid; 
-                grid-template-columns: 1fr 1fr; 
-                gap: 10px; 
-            }
+            .tableaux-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .bloc-tableau { border: 1px solid #ccc; padding: 10px; }
+            table { font-size: 10px; }
+            th, td { padding: 4px 6px; }
+            .chk { display: none; }
         }
     </style>
 </head>
 <body>
-    <main>
-        <h1>🍳 Configuration & Suivi • Réseau Central</h1>
-        <p class="subtitle">Gérez vos menus et consultez les inscriptions.</p>
-        
-        <div class="segmented">
-            <input type="radio" id="tab-registre" name="onglet-admin" value="registre" class="hidden" checked onchange="basculerOnglet('registre')">
-            <label for="tab-registre">📊 Liste cuisine</label>
-            <input type="radio" id="tab-actuelle" name="onglet-admin" value="actuelle" class="hidden" onchange="basculerOnglet('actuelle')">
-            <label for="tab-actuelle">📅 Semaine en cours</label>
-            <input type="radio" id="tab-suivante" name="onglet-admin" value="suivante" class="hidden" onchange="basculerOnglet('suivante')">
-            <label for="tab-suivante">⏩ Semaine suivante</label>
+
+<!-- ══════ ÉCRAN DE CONNEXION ══════ -->
+<div id="ecran-login">
+    <div class="login-card">
+        <div class="login-icon">🔐</div>
+        <div class="login-title">Espace Administration</div>
+        <div class="login-sub">Self CHIMR · Accès réservé</div>
+        <input type="password" id="login-pwd" class="login-input" placeholder="Mot de passe" onkeydown="if(event.key==='Enter') seConnecter()">
+        <button class="btn-login" onclick="seConnecter()">Accéder au tableau de bord</button>
+        <div class="login-erreur" id="login-erreur">⚠️ Mot de passe incorrect.</div>
+    </div>
+</div>
+
+<!-- ══════ APP ADMIN ══════ -->
+<div id="app-admin">
+
+    <header>
+        <div class="h-logo">
+            <span class="h-icon">🍳</span>
+            <div>
+                <div class="h-title">Administration · Self CHIMR</div>
+                <div class="h-sub">Gestion des menus et des inscriptions</div>
+            </div>
+        </div>
+        <button class="btn-deconnexion" onclick="seDeconnecter()">🔓 Déconnexion</button>
+    </header>
+
+    <div class="app-body">
+        <div class="tabs">
+            <button id="tab-registre" class="actif" onclick="basculerOnglet('registre')">📊 Liste cuisine</button>
+            <button id="tab-actuelle" onclick="basculerOnglet('actuelle')">📅 Semaine en cours</button>
+            <button id="tab-suivante" onclick="basculerOnglet('suivante')">⏩ Semaine suivante</button>
         </div>
 
+        <!-- ══════ SECTION MENUS ══════ -->
         <div id="section-menus" class="hidden">
-            <div id="titre-dates" class="date-semaine-titre">Chargement...</div>
+            <div id="semaine-titre" class="semaine-titre">Chargement…</div>
             <form id="form-admin">
-                <div id="conteneur-jours"></div>
-                <button type="submit" class="btn-sauvegarder">🚀 Publier les menus</button>
+                <div class="jour-grid" id="conteneur-jours"></div>
+                <button type="submit" class="btn-publier" id="btn-publier">
+                    <span>🚀</span> <span id="btn-publier-text">Publier les menus</span>
+                </button>
             </form>
         </div>
 
-        <div id="section-registre">
-            <select id="select-jour" class="select-jour-registre" onchange="chargerInscriptionsDuJour()"></select>
-            <div class="stats-grid">
-                <div class="stat-card"><div id="total-a" class="val">0</div><div class="lbl">🍖 TOTAL MENU A</div></div>
-                <div class="stat-card"><div id="total-b" class="val">0</div><div class="lbl">🌿 TOTAL MENU B</div></div>
-            </div>
-            <div id="zone-tableaux">
-                <div class="bloc-tableau">
-                    <div class="titre-tableau"><span>🍽️ Formule Sur Place</span><span id="sous-total-place" class="subtotal">0</span></div>
-                    <table id="table-place"><tbody id="corps-place"></tbody></table>
-                    <div id="vide-place" class="no-data">Aucun convive sur place.</div>
-                </div>
-                <div class="bloc-tableau">
-                    <div class="titre-tableau"><span>🛍️ Formule À Emporter</span><span id="sous-total-emporter" class="subtotal">0</span></div>
-                    <table id="table-emporter"><tbody id="corps-emporter"></tbody></table>
-                    <div id="vide-emporter" class="no-data">Aucun paquet à emporter.</div>
-                </div>
-            </div>
-            <button class="btn-imprimer" onclick="window.print()">🖨️ Imprimer le registre</button>
+        <!-- Bannière de confirmation flottante -->
+        <div class="banniere-pub" id="banniere-pub">
+            <div class="pub-check">✓</div>
+            Menus publiés avec succès !
         </div>
-    </main>
-    <script>
-        const URL_SCRIPT_GOOGLE = "https://script.google.com/macros/s/AKfycbzcCFLxV_IxqN6zToLlGcCysRZKlbZWFYv2vla3vx8nSV2-BTzdubh9GLmIJ9XMVhjD/exec";
-        let semaineSelectionnee = "actuelle";
-        let menusServeurComplets = {};
 
-        function basculerOnglet(onglet) {
-            document.getElementById('section-menus').classList.toggle('hidden', onglet === 'registre');
-            document.getElementById('section-registre').classList.toggle('hidden', onglet !== 'registre');
-            if (onglet === 'registre') {
-                chargerInscriptionsDuJour();
-            } else {
-                semaineSelectionnee = onglet;
-                genererInterfaceAdmin();
-            }
-        }
+        <!-- ══════ SECTION REGISTRE ══════ -->
+        <div id="section-registre">
+            <div class="registre-top">
+                <select class="select-jour" id="select-jour" onchange="chargerJour()"></select>
+                <button class="btn-actualiser" onclick="chargerJour()">🔄 Actualiser</button>
+                <button class="btn-csv" onclick="exporterCSV()">⬇️ Export CSV</button>
+            </div>
 
-        function chargerBaseLundi(choix) {
-            const maintenant = new Date();
-            let jourSemaine = maintenant.getDay();
-            if (jourSemaine === 0) jourSemaine = 7;
-            let baseLundi = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate() - (jourSemaine - 1));
-            if (choix === "suivante") baseLundi.setDate(baseLundi.getDate() + 7);
-            return baseLundi;
-        }
+            <div class="stats-grid">
+                <div class="stat-card"><div id="total-total" class="stat-val">—</div><div class="stat-lbl">Total repas</div></div>
+                <div class="stat-card a"><div id="total-a" class="stat-val">—</div><div class="stat-lbl">🍖 Menu A</div></div>
+                <div class="stat-card b"><div id="total-b" class="stat-val">—</div><div class="stat-lbl">🌿 Menu B</div></div>
+                <div class="stat-card"><div id="total-emporter" class="stat-val">—</div><div class="stat-lbl">🛍️ À emporter</div></div>
+            </div>
 
-        function genererInterfaceAdmin() {
-            const baseLundi = chargerBaseLundi(semaineSelectionnee);
-            document.getElementById('titre-dates').textContent = `Semaine du Lundi ${baseLundi.getDate()}/${baseLundi.getMonth() + 1}/${baseLundi.getFullYear()}`;
-            const conteneur = document.getElementById('conteneur-jours');
-            conteneur.innerHTML = "";
-            
-            for (let i = 0; i < 5; i++) {
-                let dateJour = new Date(baseLundi.getFullYear(), baseLundi.getMonth(), baseLundi.getDate() + i, 12, 0, 0);
-                let isoClé = `${dateJour.getFullYear()}-${(dateJour.getMonth() + 1).toString().padStart(2, '0')}-${dateJour.getDate().toString().padStart(2, '0')}`;
-                let menuJour = menusServeurComplets[isoClé] || { A: "", B: "", alerteA: false, alerteB: false };
-                
-                const bloc = document.createElement('div');
-                bloc.className = 'jour-bloc';
-                bloc.innerHTML = `<div class="jour-header"><div class="jour-titre" data-date="${isoClé}">📅 ${dateJour.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</div></div>
-                    <div class="input-group">
-                        <label>🍖 Menu A</label>
-                        <div class="input-row">
-                            <input type="text" id="a-${isoClé}" value="${menuJour.A || ''}" class="${menuJour.alerteA ? 'modifie' : ''}">
-                            <button type="button" class="btn-alerte ${menuJour.alerteA ? 'actif' : ''}" id="alerteA-${isoClé}" title="Signaler un changement de menu" onclick="toggleAlerte('alerteA-${isoClé}', 'a-${isoClé}')">⚠️</button>
+            <div id="zone-registre"><div class="chargement-inline">🔄 Chargement…</div></div>
+
+            <div class="actions-bas">
+                <button class="btn-imprimer" onclick="window.print()">🖨️ Imprimer le registre</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+const URL_SCRIPT_GOOGLE = "https://script.google.com/macros/s/AKfycbzcCFLxV_IxqN6zToLlGcCysRZKlbZWFYv2vla3vx8nSV2-BTzdubh9GLmIJ9XMVhjD/exec";
+
+// ⚠️  CHANGEZ CE MOT DE PASSE avant de mettre en production
+const MOT_DE_PASSE_ADMIN = "chimr2025";
+
+const JOURS_NOM  = ["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"];
+const MOIS_LONG  = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+
+let semaineSelectionnee  = "actuelle";
+let menusServeurComplets = {};
+let commandesDuJour      = [];
+let jourAffiché          = "";
+
+// ─── AUTHENTIFICATION ─────────────────────────────────────────────────────────
+function seConnecter() {
+    const saisie = document.getElementById('login-pwd').value;
+    if (saisie === MOT_DE_PASSE_ADMIN) {
+        sessionStorage.setItem('admin_auth', '1');
+        document.getElementById('ecran-login').style.display = 'none';
+        document.getElementById('app-admin').style.display   = 'block';
+        initialiserAdmin();
+    } else {
+        const el = document.getElementById('login-erreur');
+        el.style.display = 'block';
+        document.getElementById('login-pwd').value = '';
+        setTimeout(() => { el.style.display = 'none'; }, 3000);
+    }
+}
+
+function seDeconnecter() {
+    sessionStorage.removeItem('admin_auth');
+    document.getElementById('app-admin').style.display   = 'none';
+    document.getElementById('ecran-login').style.display = 'flex';
+    document.getElementById('login-pwd').value = '';
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    if (sessionStorage.getItem('admin_auth') === '1') {
+        document.getElementById('ecran-login').style.display = 'none';
+        document.getElementById('app-admin').style.display   = 'block';
+        initialiserAdmin();
+    }
+    document.getElementById('login-pwd').addEventListener('keydown', e => {
+        if (e.key === 'Enter') seConnecter();
+    });
+});
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+function initialiserAdmin() {
+    fetch(`${URL_SCRIPT_GOOGLE}?action=obtenirMenus`)
+        .then(r => r.json())
+        .then(data => { menusServeurComplets = data; })
+        .catch(() => {});
+
+    // Remplir le sélecteur de jour (registre)
+    const select   = document.getElementById('select-jour');
+    const maintenant = new Date();
+    for (let i = -7; i < 30; i++) {
+        const d = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate() + i);
+        if (d.getDay() === 0 || d.getDay() === 6) continue;
+        const opt = document.createElement('option');
+        opt.value = dateLocal(d);
+        opt.textContent = d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+        if (i === 0) opt.selected = true;
+        select.appendChild(opt);
+    }
+    chargerJour();
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function dateLocal(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function baseLundi(choix) {
+    const auj = new Date();
+    let dow = auj.getDay(); if (dow === 0) dow = 7;
+    const lundi = new Date(auj.getFullYear(), auj.getMonth(), auj.getDate() - (dow-1));
+    if (choix === "suivante") lundi.setDate(lundi.getDate() + 7);
+    return lundi;
+}
+
+// ─── ONGLETS ──────────────────────────────────────────────────────────────────
+function basculerOnglet(onglet) {
+    ['registre','actuelle','suivante'].forEach(o => {
+        document.getElementById('tab-'+o).classList.toggle('actif', o === onglet);
+    });
+    document.getElementById('section-menus').classList.toggle('hidden', onglet === 'registre');
+    document.getElementById('section-registre').classList.toggle('hidden', onglet !== 'registre');
+    if (onglet === 'registre') { chargerJour(); }
+    else {
+        semaineSelectionnee = onglet;
+        genererInterfaceMenus();
+    }
+}
+
+// ─── INTERFACE MENUS ──────────────────────────────────────────────────────────
+function genererInterfaceMenus() {
+    const lundi     = baseLundi(semaineSelectionnee);
+    const conteneur = document.getElementById('conteneur-jours');
+    document.getElementById('semaine-titre').textContent =
+        `Semaine du lundi ${lundi.getDate()} ${MOIS_LONG[lundi.getMonth()]} ${lundi.getFullYear()}`;
+    conteneur.innerHTML = "";
+
+    for (let i = 0; i < 5; i++) {
+        const d    = new Date(lundi.getFullYear(), lundi.getMonth(), lundi.getDate() + i, 12);
+        const cle  = dateLocal(d);
+        const menu = menusServeurComplets[cle] || {};
+        const ferme = menu.ferme === true || menu.ferme === 'true';
+        const dejaPublie = !!(menu.A || menu.B); // menus déjà publiés pour ce jour
+
+        const bloc = document.createElement('div');
+        bloc.className = 'jour-bloc';
+        bloc.innerHTML = `
+            <div class="jour-header">
+                <div class="jour-titre" data-date="${cle}">
+                    📅 ${d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                </div>
+                <div class="toggle-ferme-wrap">
+                    <input type="checkbox" class="toggle-ferme" id="ferme-${cle}" ${ferme ? 'checked' : ''} onchange="toggleFerme('${cle}')">
+                    <label for="ferme-${cle}">Fermé</label>
+                </div>
+            </div>
+
+            <div id="champs-${cle}" ${ferme ? 'style="opacity:.35;pointer-events:none;"' : ''}>
+                <div class="colonnes-mode">
+
+                    <!-- ═══ COLONNE À EMPORTER ═══ -->
+                    <div class="colonne-mode emporter">
+                        <div class="colonne-mode-titre">🛍️ À emporter <span class="emporter-tag">vide = non proposé</span></div>
+
+                        <div class="menu-bloc-admin">
+                            <div class="input-group">
+                                <div class="input-label"><span style="color:#b45309;">🍖</span> Menu A</div>
+                                <input type="text" id="a-emporter-${cle}" value="${menu.A_emporter||''}" placeholder="Laisser vide = non disponible à emporter"
+                                    data-original="${(menu.A_emporter||'').replace(/"/g,'&quot;')}"
+                                    onblur="detecterChangement('A','${cle}', true)">
+                            </div>
+                            <div class="ligne-options">
+                                <div class="opt-limite">
+                                    <input type="checkbox" id="chk-limA-emporter-${cle}" ${menu.limiteA != null ? 'checked' : ''} onchange="toggleLimite('A','${cle}', true)">
+                                    <label for="chk-limA-emporter-${cle}" title="Limiter le nombre de portions (stock partagé avec sur place)">Limiter</label>
+                                    <input type="number" id="limA-emporter-${cle}" class="limite-input-inline" min="1" max="999"
+                                        value="${menu.limiteA != null ? menu.limiteA : ''}"
+                                        placeholder="nb"
+                                        ${menu.limiteA != null ? '' : 'disabled'}
+                                        onchange="syncLimite('A','${cle}', true)">
+                                </div>
+                                <div class="opt-alerte" id="alerte-A-emporter-${cle}">
+                                    <input type="checkbox" id="chg-A-emporter-${cle}" ${menu.alerteA_emporter ? 'checked' : ''}
+                                        onchange="this.closest('.opt-alerte').classList.toggle('actif', this.checked)">
+                                    <label for="chg-A-emporter-${cle}" title="Alerter les inscrits à emporter si ce plat change">⚠️ Alerter</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="menu-bloc-admin">
+                            <div class="input-group">
+                                <div class="input-label"><span style="color:#047857;">🌿</span> Menu B</div>
+                                <input type="text" id="b-emporter-${cle}" value="${menu.B_emporter||''}" placeholder="Laisser vide = non disponible à emporter"
+                                    data-original="${(menu.B_emporter||'').replace(/"/g,'&quot;')}"
+                                    onblur="detecterChangement('B','${cle}', true)">
+                            </div>
+                            <div class="ligne-options">
+                                <div class="opt-limite">
+                                    <input type="checkbox" id="chk-limB-emporter-${cle}" ${menu.limiteB != null ? 'checked' : ''} onchange="toggleLimite('B','${cle}', true)">
+                                    <label for="chk-limB-emporter-${cle}" title="Limiter le nombre de portions (stock partagé avec sur place)">Limiter</label>
+                                    <input type="number" id="limB-emporter-${cle}" class="limite-input-inline" min="1" max="999"
+                                        value="${menu.limiteB != null ? menu.limiteB : ''}"
+                                        placeholder="nb"
+                                        ${menu.limiteB != null ? '' : 'disabled'}
+                                        onchange="syncLimite('B','${cle}', true)">
+                                </div>
+                                <div class="opt-alerte" id="alerte-B-emporter-${cle}">
+                                    <input type="checkbox" id="chg-B-emporter-${cle}" ${menu.alerteB_emporter ? 'checked' : ''}
+                                        onchange="this.closest('.opt-alerte').classList.toggle('actif', this.checked)">
+                                    <label for="chg-B-emporter-${cle}" title="Alerter les inscrits à emporter si ce plat change">⚠️ Alerter</label>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="input-group">
-                        <label>🌿 Menu B</label>
-                        <div class="input-row">
-                            <input type="text" id="b-${isoClé}" value="${menuJour.B || ''}" class="${menuJour.alerteB ? 'modifie' : ''}">
-                            <button type="button" class="btn-alerte ${menuJour.alerteB ? 'actif' : ''}" id="alerteB-${isoClé}" title="Signaler un changement de menu" onclick="toggleAlerte('alerteB-${isoClé}', 'b-${isoClé}')">⚠️</button>
+
+                    <!-- ═══ COLONNE SUR PLACE ═══ -->
+                    <div class="colonne-mode">
+                        <div class="colonne-mode-titre">🍽️ Sur place</div>
+
+                        <div class="menu-bloc-admin">
+                            <div class="input-group">
+                                <div class="input-label"><span style="color:#b45309;">🍖</span> Menu A</div>
+                                <input type="text" id="a-${cle}" value="${menu.A||''}" placeholder="Ex : Poulet rôti aux herbes"
+                                    data-original="${(menu.A||'').replace(/"/g,'&quot;')}"
+                                    onblur="detecterChangement('A','${cle}')">
+                            </div>
+                            <div class="ligne-options">
+                                <div class="opt-limite">
+                                    <input type="checkbox" id="chk-limA-${cle}" ${menu.limiteA != null ? 'checked' : ''} onchange="toggleLimite('A','${cle}')">
+                                    <label for="chk-limA-${cle}" title="Limiter le nombre de portions">Limiter</label>
+                                    <input type="number" id="limA-${cle}" class="limite-input-inline" min="1" max="999"
+                                        value="${menu.limiteA != null ? menu.limiteA : ''}"
+                                        placeholder="nb"
+                                        ${menu.limiteA != null ? '' : 'disabled'}
+                                        onchange="syncLimite('A','${cle}')">
+                                </div>
+                                <div class="opt-alerte" id="alerte-A-${cle}">
+                                    <input type="checkbox" id="chg-A-${cle}" ${menu.alerteA ? 'checked' : ''}
+                                        onchange="this.closest('.opt-alerte').classList.toggle('actif', this.checked)">
+                                    <label for="chg-A-${cle}" title="Alerter les inscrits sur place si ce plat change">⚠️ Alerter</label>
+                                </div>
+                            </div>
                         </div>
-                    </div>`;
-                conteneur.appendChild(bloc);
-            }
-        }
 
-        function chargerInscriptionsDuJour() {
-            const select = document.getElementById('select-jour');
-            const jourSelectionne = select.value;
-            document.getElementById('section-registre').setAttribute('data-date-print', select.options[select.selectedIndex].text);
-            
-            fetch(`${URL_SCRIPT_GOOGLE}?action=obtenirInscriptions`)
-            .then(res => res.json())
-            .then(toutesLesInscriptions => {
-                let commandesDuJour = toutesLesInscriptions.filter(c => c.date === jourSelectionne);
-                let listeCommandes = Array.from(new Map(commandesDuJour.map(c => [c.nom, c])).values());
+                        <div class="menu-bloc-admin">
+                            <div class="input-group">
+                                <div class="input-label"><span style="color:#047857;">🌿</span> Menu B</div>
+                                <input type="text" id="b-${cle}" value="${menu.B||''}" placeholder="Ex : Gratin de légumes"
+                                    data-original="${(menu.B||'').replace(/"/g,'&quot;')}"
+                                    onblur="detecterChangement('B','${cle}')">
+                            </div>
+                            <div class="ligne-options">
+                                <div class="opt-limite">
+                                    <input type="checkbox" id="chk-limB-${cle}" ${menu.limiteB != null ? 'checked' : ''} onchange="toggleLimite('B','${cle}')">
+                                    <label for="chk-limB-${cle}" title="Limiter le nombre de portions">Limiter</label>
+                                    <input type="number" id="limB-${cle}" class="limite-input-inline" min="1" max="999"
+                                        value="${menu.limiteB != null ? menu.limiteB : ''}"
+                                        placeholder="nb"
+                                        ${menu.limiteB != null ? '' : 'disabled'}
+                                        onchange="syncLimite('B','${cle}')">
+                                </div>
+                                <div class="opt-alerte" id="alerte-B-${cle}">
+                                    <input type="checkbox" id="chg-B-${cle}" ${menu.alerteB ? 'checked' : ''}
+                                        onchange="this.closest('.opt-alerte').classList.toggle('actif', this.checked)">
+                                    <label for="chg-B-${cle}" title="Alerter les inscrits sur place si ce plat change">⚠️ Alerter</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                function construireTableau(list, idCorps, idTable, idVide, idSousTotal) {
-                    const corps = document.getElementById(idCorps); 
-                    corps.innerHTML = "";
-                    if (list.length === 0) {
-                        document.getElementById(idVide).style.display = "block";
-                        document.getElementById(idTable).style.display = "none";
-                        document.getElementById(idSousTotal).textContent = "0 repas";
-                        return;
-                    }
-                    document.getElementById(idVide).style.display = "none";
-                    document.getElementById(idTable).style.display = "table";
-                    document.getElementById(idSousTotal).textContent = `${list.length} repas`;
+                </div>
+            </div>
+        `;
+        conteneur.appendChild(bloc);
+    }
 
-                    ['Menu A', 'Menu B'].forEach(m => {
-                        const items = list.filter(c => c.menu === m);
-                        if (items.length > 0) {
-                            let tr = document.createElement('tr');
-                            let bgColor = (m === 'Menu A') ? '#fef3c7' : '#d1fae5';
-                            let textColor = (m === 'Menu A') ? '#b45309' : '#047857';
-                            tr.innerHTML = `<td colspan="3" style="background:${bgColor}; color:${textColor}; font-weight:800; font-size:12px; text-transform:uppercase; padding: 8px 12px;">
-                                                ${m} (${items.length})
-                                            </td>`;
-                            corps.appendChild(tr);
-                            items.forEach(cmd => {
-                                let r = document.createElement('tr');
-                                r.innerHTML = `<td>⬜</td><td><strong>${cmd.nom}</strong></td><td>${cmd.heure}</td>`;
-                                corps.appendChild(r);
-                            });
-                        }
-                    });
-                }
-                document.getElementById('total-a').textContent = listeCommandes.filter(c => c.menu === "Menu A").length;
-                document.getElementById('total-b').textContent = listeCommandes.filter(c => c.menu === "Menu B").length;
-                construireTableau(listeCommandes.filter(c => c.mode === "Sur place"), 'corps-place', 'table-place', 'vide-place', 'sous-total-place');
-                construireTableau(listeCommandes.filter(c => c.mode === "À emporter"), 'corps-emporter', 'table-emporter', 'vide-emporter', 'sous-total-emporter');
-            });
-        }
+    // Initialiser l'état visuel "actif" des cases alerte déjà cochées au chargement
+    document.querySelectorAll('.opt-alerte input[type="checkbox"]').forEach(chk => {
+        chk.closest('.opt-alerte').classList.toggle('actif', chk.checked);
+    });
+}
 
-        window.onload = () => {
-            fetch(`${URL_SCRIPT_GOOGLE}?action=obtenirMenus`)
-            .then(res => res.json())
-            .then(donnees => { menusServeurComplets = donnees; });
+function detecterChangement(lettre, cle, depuisEmporter) {
+    const suffixe        = depuisEmporter ? '-emporter' : '';
+    const input          = document.getElementById(`${lettre.toLowerCase()}${suffixe}-${cle}`);
+    const ancienneValeur = input.getAttribute('data-original') || '';
+    const nouvelleValeur = input.value.trim();
+    const checkbox       = document.getElementById(`chg-${lettre}${suffixe}-${cle}`);
+    const wrap           = document.getElementById(`alerte-${lettre}${suffixe}-${cle}`);
+    // Si le plat était déjà publié et a réellement changé, cocher automatiquement l'alerte (suggestion)
+    if (ancienneValeur && nouvelleValeur && nouvelleValeur !== ancienneValeur) {
+        checkbox.checked = true;
+        wrap.classList.add('actif');
+    }
+}
 
-            const select = document.getElementById('select-jour');
-            const aujourdhui = new Date();
-            for (let i = 0; i < 30; i++) {
-                let d = new Date(aujourdhui.getFullYear(), aujourdhui.getMonth(), aujourdhui.getDate() + i);
-                if (d.getDay() === 0 || d.getDay() === 6) continue;
-                let opt = document.createElement('option');
-                opt.value = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
-                opt.textContent = d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-                select.appendChild(opt);
-            }
-            chargerInscriptionsDuJour();
-        };
+function toggleFerme(cle) {
+    const checked = document.getElementById('ferme-'+cle).checked;
+    const champs  = document.getElementById('champs-'+cle);
+    champs.style.opacity        = checked ? '0.35' : '';
+    champs.style.pointerEvents  = checked ? 'none' : '';
+}
 
-        function toggleAlerte(btnId, inputId) {
-            const btn = document.getElementById(btnId);
-            const input = document.getElementById(inputId);
-            const actif = btn.classList.toggle('actif');
-            input.classList.toggle('modifie', actif);
-        }
+function toggleLimite(lettre, cle, depuisEmporter) {
+    const suffixe   = depuisEmporter ? '-emporter' : '';
+    const suffixeOp = depuisEmporter ? '' : '-emporter';
+    const checked   = document.getElementById(`chk-lim${lettre}${suffixe}-${cle}`).checked;
+    const input     = document.getElementById(`lim${lettre}${suffixe}-${cle}`);
+    const chkOp     = document.getElementById(`chk-lim${lettre}${suffixeOp}-${cle}`);
+    const inputOp   = document.getElementById(`lim${lettre}${suffixeOp}-${cle}`);
 
-        document.getElementById('form-admin').addEventListener('submit', function(e) {
-            e.preventDefault();
-            let paquetsMenus = [];
-            document.querySelectorAll('.jour-bloc').forEach(bloc => {
-                let d = bloc.querySelector('.jour-titre').getAttribute('data-date');
-                const alerteA = bloc.querySelector(`#alerteA-${d}`)?.classList.contains('actif') || false;
-                const alerteB = bloc.querySelector(`#alerteB-${d}`)?.classList.contains('actif') || false;
-                paquetsMenus.push({
-                    date: d,
-                    menuA: bloc.querySelector(`input[id="a-${d}"]`).value,
-                    menuB: bloc.querySelector(`input[id="b-${d}"]`).value,
-                    alerteA: alerteA,
-                    alerteB: alerteB
-                });
-            });
-            fetch(URL_SCRIPT_GOOGLE, { method: "POST", mode: "no-cors", body: new URLSearchParams({ action: "enregistrerMenus", donnees: JSON.stringify(paquetsMenus) }) }).then(() => alert("🎉 Publié !"));
+    input.disabled = !checked;
+    if (!checked) { input.value = ''; }
+    else { input.focus(); }
+
+    // Synchroniser l'autre colonne (stock global partagé par lettre de menu)
+    if (chkOp) chkOp.checked = checked;
+    if (inputOp) {
+        inputOp.disabled = !checked;
+        if (!checked) inputOp.value = '';
+        else inputOp.value = input.value;
+    }
+}
+
+function syncLimite(lettre, cle, depuisEmporter) {
+    const suffixe   = depuisEmporter ? '-emporter' : '';
+    const suffixeOp = depuisEmporter ? '' : '-emporter';
+    const input   = document.getElementById(`lim${lettre}${suffixe}-${cle}`);
+    const inputOp = document.getElementById(`lim${lettre}${suffixeOp}-${cle}`);
+    if (inputOp) inputOp.value = input.value;
+}
+
+function afficherBanniere() {
+    const b = document.getElementById('banniere-pub');
+    b.classList.add('visible');
+    setTimeout(() => b.classList.remove('visible'), 3500);
+}
+
+document.getElementById('form-admin').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const btn     = document.getElementById('btn-publier');
+    const btnText = document.getElementById('btn-publier-text');
+    btn.disabled  = true;
+    btnText.textContent = 'Publication…';
+
+    const paquets = [];
+    document.querySelectorAll('.jour-bloc').forEach(bloc => {
+        const cle    = bloc.querySelector('[data-date]').getAttribute('data-date');
+        const ferme  = document.getElementById('ferme-'+cle).checked;
+        const chkA   = document.getElementById('chk-limA-'+cle)?.checked;
+        const chkB   = document.getElementById('chk-limB-'+cle)?.checked;
+        const valLimA = document.getElementById('limA-'+cle)?.value;
+        const valLimB = document.getElementById('limB-'+cle)?.value;
+        const msgA   = document.getElementById('chg-A-'+cle)?.checked ?? false;
+        const msgB   = document.getElementById('chg-B-'+cle)?.checked ?? false;
+        const msgAEmporter = document.getElementById('chg-A-emporter-'+cle)?.checked ?? false;
+        const msgBEmporter = document.getElementById('chg-B-emporter-'+cle)?.checked ?? false;
+        paquets.push({
+            date:    cle,
+            menuA:   ferme ? '' : (document.getElementById('a-'+cle)?.value || ''),
+            menuB:   ferme ? '' : (document.getElementById('b-'+cle)?.value || ''),
+            menuAEmporter: ferme ? '' : (document.getElementById('a-emporter-'+cle)?.value || ''),
+            menuBEmporter: ferme ? '' : (document.getElementById('b-emporter-'+cle)?.value || ''),
+            ferme:   ferme,
+            limiteA: (chkA && valLimA) ? parseInt(valLimA) : null,
+            limiteB: (chkB && valLimB) ? parseInt(valLimB) : null,
+            alerteA: msgA ? true : false,
+            alerteB: msgB ? true : false,
+            alerteAEmporter: msgAEmporter ? true : false,
+            alerteBEmporter: msgBEmporter ? true : false,
         });
-    </script>
+    });
+
+    fetch(URL_SCRIPT_GOOGLE, {
+        method: "POST", mode: "no-cors",
+        body: new URLSearchParams({ action: "enregistrerMenus", donnees: JSON.stringify(paquets) })
+    }).then(() => {
+        paquets.forEach(p => {
+            menusServeurComplets[p.date] = {
+                A: p.menuA, B: p.menuB, ferme: p.ferme, limiteA: p.limiteA, limiteB: p.limiteB,
+                alerteA: p.alerteA, alerteB: p.alerteB,
+                A_emporter: p.menuAEmporter, B_emporter: p.menuBEmporter,
+                alerteA_emporter: p.alerteAEmporter, alerteB_emporter: p.alerteBEmporter
+            };
+            // Mettre à jour les data-original pour que la prochaine modif se compare au nouveau menu
+            const inputA = document.getElementById('a-'+p.date);
+            const inputB = document.getElementById('b-'+p.date);
+            const inputAEmp = document.getElementById('a-emporter-'+p.date);
+            const inputBEmp = document.getElementById('b-emporter-'+p.date);
+            if (inputA) inputA.setAttribute('data-original', p.menuA);
+            if (inputB) inputB.setAttribute('data-original', p.menuB);
+            if (inputAEmp) inputAEmp.setAttribute('data-original', p.menuAEmporter);
+            if (inputBEmp) inputBEmp.setAttribute('data-original', p.menuBEmporter);
+        });
+        btn.disabled = false;
+        btnText.textContent = 'Publier les menus';
+        afficherBanniere();
+        // Décocher les alertes de changement après publication
+        document.querySelectorAll('.opt-alerte').forEach(el => {
+            const chk = el.querySelector('input[type="checkbox"]');
+            if (chk) chk.checked = false;
+            el.classList.remove('actif');
+        });
+    }).catch(() => {
+        btn.disabled = false;
+        btnText.textContent = 'Publier les menus';
+        alert('Erreur réseau lors de la publication. Réessayez.');
+    });
+});
+
+// ─── REGISTRE ─────────────────────────────────────────────────────────────────
+function chargerJour() {
+    const select = document.getElementById('select-jour');
+    jourAffiché  = select.value;
+    const label  = select.options[select.selectedIndex]?.text || jourAffiché;
+    document.getElementById('section-registre').setAttribute('data-date-print', label.toUpperCase());
+    document.getElementById('zone-registre').innerHTML = '<div class="chargement-inline">🔄 Chargement…</div>';
+    ['total-total','total-a','total-b','total-emporter'].forEach(id => document.getElementById(id).textContent = '—');
+
+    fetch(`${URL_SCRIPT_GOOGLE}?action=obtenirInscriptions`)
+    .then(r => r.json())
+    .then(data => {
+        // Dédoublonner par nom (dernière inscription gagne)
+        const map = new Map();
+        data.filter(c => {
+            const d = (c.date||'').toString().replace(/'/g,'').trim();
+            return d === jourAffiché;
+        }).forEach(c => map.set((c.nom||'').trim().toLowerCase(), c));
+
+        commandesDuJour = Array.from(map.values());
+        // Trier par heure de retrait puis nom
+        commandesDuJour.sort((a,b) => {
+            const ha = a.heure||'';
+            const hb = b.heure||'';
+            if (ha !== hb) return ha.localeCompare(hb);
+            return (a.nom||'').localeCompare(b.nom||'');
+        });
+        afficherRegistre();
+    })
+    .catch(() => {
+        document.getElementById('zone-registre').innerHTML = '<div class="chargement-inline">⚠️ Erreur de chargement. Vérifiez la connexion.</div>';
+    });
+}
+
+function afficherRegistre() {
+    const place    = commandesDuJour.filter(c => c.mode === 'Sur place');
+    const emporter = commandesDuJour.filter(c => c.mode === 'À emporter');
+    const totalA   = commandesDuJour.filter(c => c.menu === 'Menu A').length;
+    const totalB   = commandesDuJour.filter(c => c.menu === 'Menu B').length;
+
+    document.getElementById('total-total').textContent    = commandesDuJour.length;
+    document.getElementById('total-a').textContent        = totalA;
+    document.getElementById('total-b').textContent        = totalB;
+    document.getElementById('total-emporter').textContent = emporter.length;
+
+    document.getElementById('zone-registre').innerHTML = `
+        <div class="tableaux-grid" id="zone-tableaux">
+            <div class="bloc-tableau">
+                <div class="titre-tableau">
+                    <span>🍽️ Sur place</span>
+                    <span class="sous-total">${place.length} repas</span>
+                </div>
+                ${construireTableauHTML(place)}
+            </div>
+            <div class="bloc-tableau">
+                <div class="titre-tableau">
+                    <span>🛍️ À emporter</span>
+                    <span class="sous-total">${emporter.length} repas</span>
+                </div>
+                ${construireTableauHTML(emporter)}
+            </div>
+        </div>
+    `;
+}
+
+function construireTableauHTML(liste) {
+    if (liste.length === 0) return '<div class="no-data">Aucune commande.</div>';
+    let html = '<table><thead><tr><th>✓</th><th>Nom</th><th>Menu</th><th>Heure</th></tr></thead><tbody>';
+
+    ['Menu A','Menu B'].forEach(m => {
+        const items = liste.filter(c => c.menu === m);
+        if (!items.length) return;
+        const cls = m === 'Menu A' ? 'row-menu-a' : 'row-menu-b';
+        const ico = m === 'Menu A' ? '🍖' : '🌿';
+        html += `<tr class="${cls}"><td colspan="4">${ico} ${m} · ${items.length} repas</td></tr>`;
+        items.forEach(cmd => {
+            html += `<tr>
+                <td><span class="chk">⬜</span></td>
+                <td><strong>${cmd.nom||'—'}</strong></td>
+                <td style="font-size:11px;color:var(--slate);">${m.replace('Menu ','')}</td>
+                <td><span class="heure-badge">${cmd.heure||'—'}</span></td>
+            </tr>`;
+        });
+    });
+    return html + '</tbody></table>';
+}
+
+// ─── EXPORT CSV ───────────────────────────────────────────────────────────────
+function exporterCSV() {
+    if (!commandesDuJour.length) { alert('Aucune donnée à exporter.'); return; }
+    const select = document.getElementById('select-jour');
+    const label  = select.options[select.selectedIndex]?.text || jourAffiché;
+    const lignes = [
+        ['Date','Nom','Menu','Mode','Heure retrait'],
+        ...commandesDuJour.map(c => [
+            jourAffiché,
+            c.nom||'',
+            c.menu||'',
+            c.mode||'',
+            c.heure||''
+        ])
+    ];
+    const bom  = '\uFEFF';
+    const csv  = bom + lignes.map(l => l.map(v => `"${String(v).replace(/"/g,'""')}"`).join(';')).join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `self-chimr-${jourAffiché}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+</script>
 </body>
 </html>
