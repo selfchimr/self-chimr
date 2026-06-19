@@ -140,6 +140,7 @@
         }
         .banniere-pub.visible { transform: translateX(-50%) translateY(0); opacity: 1; }
         .banniere-pub .pub-check { width: 32px; height: 32px; background: rgba(255,255,255,0.25); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+        .banniere-pub.erreur { background: #dc2626; box-shadow: 0 12px 40px rgba(220,38,38,0.45); }
 
         /* ─── SECTION REGISTRE ─── */
         .registre-top { display: flex; gap: 10px; align-items: center; margin-bottom: 18px; flex-wrap: wrap; }
@@ -244,8 +245,8 @@
 
         <!-- Bannière de confirmation flottante -->
         <div class="banniere-pub" id="banniere-pub">
-            <div class="pub-check">✓</div>
-            Menus publiés avec succès !
+            <div class="pub-check" id="banniere-pub-icone">✓</div>
+            <span id="banniere-pub-texte">Menus publiés avec succès !</span>
         </div>
 
         <!-- ══════ SECTION REGISTRE ══════ -->
@@ -573,10 +574,45 @@ function syncLimite(lettre, cle, depuisEmporter) {
     if (inputOp) inputOp.value = input.value;
 }
 
-function afficherBanniere() {
-    const b = document.getElementById('banniere-pub');
+function afficherBanniere(succes = true, message = null) {
+    const b     = document.getElementById('banniere-pub');
+    const icone = document.getElementById('banniere-pub-icone');
+    const texte = document.getElementById('banniere-pub-texte');
+
+    b.classList.toggle('erreur', !succes);
+    icone.textContent = succes ? '✓' : '⚠️';
+    texte.textContent = message || (succes ? 'Menus publiés avec succès !' : 'Vérification impossible.');
+
     b.classList.add('visible');
-    setTimeout(() => b.classList.remove('visible'), 3500);
+    setTimeout(() => b.classList.remove('visible'), succes ? 3500 : 6000);
+}
+
+// ─── VÉRIFICATION POST-PUBLICATION ─────────────────────────────────────────────
+// Comme l'envoi utilise mode "no-cors", on ne peut jamais lire la vraie réponse
+// du serveur. On vérifie donc après coup en relisant le Google Sheet, pour
+// confirmer que les menus envoyés correspondent bien à ce qui y est enregistré.
+function verifierPublication(paquets) {
+    return fetch(`${URL_SCRIPT_GOOGLE}?action=obtenirMenus`)
+        .then(r => r.json())
+        .then(donneesServeur => {
+            const echecs = [];
+            paquets.forEach(p => {
+                const surServeur = donneesServeur[p.date] || {};
+                const champsAVerifier = [
+                    ['A', p.menuA, surServeur.A],
+                    ['B', p.menuB, surServeur.B],
+                    ['A Emporter', p.menuAEmporter, surServeur.A_emporter],
+                    ['B Emporter', p.menuBEmporter, surServeur.B_emporter],
+                ];
+                champsAVerifier.forEach(([label, attendu, recu]) => {
+                    if ((attendu || '') !== (recu || '')) {
+                        echecs.push(`${p.date} · Menu ${label}`);
+                    }
+                });
+            });
+            return { ok: echecs.length === 0, echecs };
+        })
+        .catch(() => ({ ok: false, echecs: ['Impossible de relire le Google Sheet'] }));
 }
 
 document.getElementById('form-admin').addEventListener('submit', function(e) {
@@ -635,15 +671,29 @@ document.getElementById('form-admin').addEventListener('submit', function(e) {
             if (inputAEmp) inputAEmp.setAttribute('data-original', p.menuAEmporter);
             if (inputBEmp) inputBEmp.setAttribute('data-original', p.menuBEmporter);
         });
-        btn.disabled = false;
-        btnText.textContent = 'Publier les menus';
-        afficherBanniere();
+
         // Décocher les alertes de changement après publication
         document.querySelectorAll('.opt-alerte').forEach(el => {
             const chk = el.querySelector('input[type="checkbox"]');
             if (chk) chk.checked = false;
             el.classList.remove('actif');
         });
+
+        btnText.textContent = 'Vérification…';
+
+        // Laisser 1.5s à Google Sheets pour propager l'écriture, puis relire pour confirmer
+        setTimeout(() => {
+            verifierPublication(paquets).then(({ ok, echecs }) => {
+                btn.disabled = false;
+                btnText.textContent = 'Publier les menus';
+                if (ok) {
+                    afficherBanniere(true);
+                } else {
+                    console.warn('Échecs de publication détectés :', echecs);
+                    afficherBanniere(false, `⚠️ ${echecs.length} menu(s) non confirmé(s) sur le Sheet. Vérifiez et republiez si besoin.`);
+                }
+            });
+        }, 1500);
     }).catch(() => {
         btn.disabled = false;
         btnText.textContent = 'Publier les menus';
